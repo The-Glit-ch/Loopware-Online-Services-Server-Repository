@@ -1,0 +1,16 @@
+{
+  "name": "loopware-online-subsystem-server",
+  "version": "1.0.0",
+  "description": "LOS Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "keywords": [],
+  "author": "https://github.com/The-Glit-ch",
+  "license": "MIT",
+  "dependencies": {
+    "date-fns": "^2.29.3",
+    "express": "^4.18.2"
+  }
+}
