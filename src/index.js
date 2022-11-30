@@ -14,9 +14,11 @@ app.use(express.json())
 // Routing
 const auth = require('../middleware/Auth')
 const time = require('../routes/time')
+const db = require('../routes/db')
 
 app.use(auth)
-app.use("/time", time)
+app.use("/api/time", time)
+app.use("/api/db", db)
 
 // Init
 app.listen(port, () => {
