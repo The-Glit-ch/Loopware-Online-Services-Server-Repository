@@ -2,69 +2,64 @@
 const { randomBytes, createHash } = require('crypto')
 
 // Filesystem
-const { writeFile, readdir } = require('fs')
+const { writeFile, readFile, readdir } = require('fs')
+const { join } = require('path')
+
+// Crypto
+const crypto = require('crypto')
 
 // Keys
+var client_token
 var server_token
 
-class AuthUtils{
-	constructor(random_byte_length_limit){
-		this.random_byte_length_limit = random_byte_length_limit
-	}
+// Config
+const random_byte_length_limit = 32 // 32 characters of random bytes
+const data_directory = join(process.cwd(), "/data")
 
 
-	
+exports.generate_new_api_key = function generate_new_api_keys(){
+	// Client token is the unhashed API key. The client will use that to access the server
+	// Private token is the hashed API key. The server will use this to compare the client token
+	let client_token
+	let private_token
 
+	client_token = randomBytes(random_byte_length_limit).toString('base64')
+	private_token = "Bearer " + createHash('sha256').update(client_token).digest('base64')
 
+	client_token = client_token
+	server_token = private_token
+
+	return [client_token, server_token]
 }
 
-
-// AUTH Functions
-async function main(){
-	// Check if there is a token already saved
-	// If not generate a new token
-	let result = await check_for_saved_keys()
-	let keys = []
-
-	if (result == false){
-		keys = generate_new_api_keys(32)
-		logger.formated_log(`Your new API key is: ${keys[0]}`)
-		await save_api_key_to_file(`Bearer ${keys[1]}`)
-
-		test_key = `Bearer ${keys[1]}`
-	}
-}
-
-exports.generate_new_api_keys = function generate_new_api_keys(random_byte_limit){
-	let private_key
-	let public_key
-
-	public_key = randomBytes(random_byte_limit).toString("base64")
-	private_key = createHash("sha256").update(public_key).digest('base64') // Stored on the server
-	
-	return [public_key, private_key]
-}
-
-function check_for_saved_keys(){
+exports.check_for_saved_api_keys = function check_for_saved_api_keys(){
 	return new Promise((resolve, reject) => {
 		readdir(data_directory, (err, file) => {
 			if (err) return reject(err)
 
-			if (file == "save.keys"){
-				resolve(true)
-			}else{
-				resolve(false)
-			}
+			return (file == "save.keys") ? resolve(true) : resolve(false)
 		})
 	})
 }
 
-function save_api_key_to_file(api_key){
+exports.write_api_key_to_file = function write_api_key_to_file(api_key){
 	return new Promise((resolve, reject) => {
-		writeFile(path.join(data_directory, "save.keys"), api_key, (err) => {
+		writeFile(join(data_directory, "/save.keys"), api_key, (err) => {
 			if (err) return reject(err)
-
-			resolve(logger.formated_log("Server API key saved"))
 		})
 	})
+}
+
+exports.read_api_key_from_file = function read_api_key_from_file(){
+	return new Promise((resolve, reject) => {
+		readFile(join(data_directory, "/save.keys"), (err, key) => {
+			if (err) return reject(err)
+
+			return resolve(key)
+		})
+	})
+}
+
+exports.hash_incoming_key = function hash_incoming_key(api_key){
+	return `Bearer ${crypto.createHash("sha256").update(api_key).digest('base64')}`
 }

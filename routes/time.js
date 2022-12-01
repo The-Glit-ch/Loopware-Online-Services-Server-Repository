@@ -13,7 +13,7 @@ const { getUnixTime, getYear, getMonth, getDate, getHours, getMinutes, getSecond
 const logger = require("../custom/logger")
 
 router.use((req, res, next) => {
-	logger.formated_log("/time endpoint triggered")
+	logger.formated_log(`Endpoint "${req.baseUrl}" triggered`)
 	next()
 })
 

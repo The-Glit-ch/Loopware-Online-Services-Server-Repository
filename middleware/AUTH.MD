@@ -12,4 +12,10 @@
 # Authentication System || v1.1
 
 # Steps
+1. Generate 32 random bytes, convert to base64, save to variable || Client Token
+2. Hash the 32 random bytes with sha256, convert to base64, save to file || Server Token
+3. Client sends server AUTH key via "Bearer" authentication
+4. Server hashes and converts token to from sha256 -> base64
+
+* Maybe more stuff should be added for AUTH? 
 
