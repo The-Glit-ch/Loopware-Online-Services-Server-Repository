@@ -8,3 +8,8 @@
 5. Server will compare the hash with the internal key (32 random bytes)
 6. Generate 32 char long byte and hash it with sha256, return to sender, save only for 10 min
 7. Repeat
+
+# Authentication System || v1.1
+
+# Steps
+

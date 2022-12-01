@@ -1,55 +1,35 @@
 // Handles authentication of any incoming request to the server
+// v1.1
 
 //Express
 const express = require('express')
 const router = express.Router()
 
-// Crypto
-const crypto = require('crypto')
-
-// Filesystem
-const fs = require('fs')
+// Auth Utils
+const { generate_new_api_keys, } = require('./AuthUtils')
 
 // Logger
 const logger = require('../custom/logger')
 
-
-// Init Process
-function main(){
-	// Check if there is a token already saved
-	// If not generate a new token
-
-}
-
-function generate_new_keys(r_byte_limit){
-	let buffer = crypto.randomBytes(r_byte_limit)
-	let hash = crypto.createHash('sha256')
-	let private_key = buffer.toString('hex')
-	let public_key = hash.update(private_key).digest().toString('hex')
-
-	logger.formated_log(private_key)
-	logger.formated_log(public_key)
-}
-
-
-
-// Set
-
 router.use((req, res, next) => {
-	logger.formated_log("Connection")
-	// logger.formated_log(crypto.randomBytes(32))
+	let authorization_header = req.headers.authorization.replace("Bearer ", "")
+	let hashed_authorization_header = `Bearer ${crypto.createHash("sha256").update(authorization_header).digest('base64')}`
+
+	if (req.url == "/api/register"){
+		next()
+	}
+
+	if (hashed_authorization_header != test_key){
+		res.status(401).json({
+			"message": "Invalid API key"
+		})
+	}
+
 	next()
 })
 
-
-router.get("/api", (req, res) => {
-	let auth_header = req.headers.authorization
-	res.status(200).json({
-		"current_status": "alive",
-	})
+router.get("/api/register", (req, res) => {
+	let keys = none
 })
-
-generate_new_keys(32)
-
 
 module.exports = router
