@@ -1,0 +1,20 @@
+### Retrieve access token and refresh token
+
+POST http://localhost:8081/auth/server
+Authorization: Bearer 06gunn7N8grlHzghZ+1KcZc+YyNCfLM63f0sxoZc6Mb/bd7pXT9ynTRy6emlFCBkoQZixLYh5NAl4/UkQqN+rw==
+
+###
+
+### Check access token
+
+GET http://localhost:8081/auth/server/check-access
+Authorization: Bearer XX
+
+###
+
+### Logout route
+
+POST http://localhost:8081/auth/server/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjA2Z3VubjdOOGdybEh6Z2haKzFLY1pjK1l5TkNmTE02M2Ywc3hvWmM2TWIvYmQ3cFhUOXluVFJ5NmVtbEZDQmtvUVppeExZaDVOQWw0L1VrUXFOK3J3PT0iLCJpYXQiOjE2NzAyNjU3NjJ9.cptHw8Xc9zIgYlJ_VjOilAC2D2jZKcnkeNaB4FLX-EU
+
+###
