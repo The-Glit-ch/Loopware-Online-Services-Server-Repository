@@ -21,6 +21,12 @@ if (env_err != undefined){ err(`.ENV file was not successfuly loaded | ${env_err
 // Middleware
 app.use(express.json())
 
+// Logging Middlware
+app.use( (req, res, next) => {
+	log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
+	next()
+})
+
 // Routes
 const user_endpoint = require('./routes/user')
 const server_endpoint = require('./routes/server')
