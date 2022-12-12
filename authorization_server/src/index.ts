@@ -22,7 +22,7 @@ if (env_err != undefined){ err(`.ENV file was not successfuly loaded | ${env_err
 app.use(express.json())
 
 // Logging Middlware
-app.use( (req, res, next) => {
+app.use( (req, _res, next) => {
 	log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
 	next()
 })

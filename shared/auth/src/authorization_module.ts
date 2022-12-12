@@ -4,7 +4,7 @@
 import { createHash } from 'crypto'
 
 // JWT
-import { sign, verify, SignOptions } from 'jsonwebtoken'
+import { sign, verify } from 'jsonwebtoken'
 
 // Verifies the client token to the internal server access token
 // The client token is just the raw unhashed version of the server access token

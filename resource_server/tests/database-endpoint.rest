@@ -1,0 +1,14 @@
+### Create a new database and write data
+
+POST http://127.0.0.1:8080/rs/datastore/new
+Content-Type: application/json
+
+{
+	"dbName": "example-db",
+	"dbData": {
+		"newKey": "newValue",
+		"newKey": ["array_0", "array_1"]
+	}
+}
+
+###

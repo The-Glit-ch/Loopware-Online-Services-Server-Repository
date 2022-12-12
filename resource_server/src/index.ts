@@ -1,4 +1,5 @@
-// Main Server File
+// Resource Server
+// Handles anything database related
 
 // Express
 import express from "express";
@@ -20,12 +21,19 @@ if (env_err != undefined){ err(`.ENV file was not successfuly loaded | ${env_err
 if (auth_enabled == false && env_err == undefined){ wrn("Authorization middleware is DISABLED") }
 
 // Middleware
+const auth = require('./middleware/auth')
 app.use(express.json())
-if (auth_enabled){ app.use() }
+if (auth_enabled){ app.use(auth) }
+
+// Logging Middleware
+app.use( (req, _res, next) => {
+	log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
+	next()
+})
 
 // Routes
-const datastore = require('./routes/database')
-app.use("/api", datastore)
+const datastore = require('./routes/datastore')
+app.use("/rs", datastore)
 
 
 app.listen(port, () => {

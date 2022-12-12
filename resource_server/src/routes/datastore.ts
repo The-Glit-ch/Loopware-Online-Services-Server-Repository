@@ -1,30 +1,43 @@
+// Datastore Endpoint
+
 // Router
 import express from 'express'
 const router = express.Router()
 
 // MongoDB Client
-import { MongoClient } from 'mongodb'
-const url: string = 'mongodb://xxxxxxxxxxx:27017'
-const database_client: MongoClient = new MongoClient(url)
-const database_name: string = 'testProject'
-
-// Authorization Module
-import { verify_and_decode_jwt } from '../../../shared/auth/src/authorization_module'
+import { Db, MongoClient } from 'mongodb'
+const mongodb_uri: string = 'mongodb://XX.XX.XX.XXX:27017' 				// Replace with URI of MongoDB Database
+const mongodb_client: MongoClient = new MongoClient(mongodb_uri)		// Create a new client with the URI passed
 
 // Logger
-import { log } from '../../../shared/logger/src/logging_module'
+import { log, err } from '../../../shared/logger/src/logging_module'
 
-// Initilization
-async function main() {
-	// Connect to database
-	await database_client.connect()
-	log(`Connected to MongoDB ${database_name}`)
+// MongoDB Client Initilization
+async function init_MongoClient(): Promise<void>{
+	// Attemp connection to MongoDB
+	await mongodb_client.connect()
+
+	// If we are able to connect then we should assume all is good
+	log(`Connection to MongoDB instance was successful.`)
 }
 
-router.post("/datastore", (req, res) => {
+router.post("/datastore/new", (req, res) => {
+	let databody: any | undefined = req.body
+	if(databody == undefined){ return res.status(400).json({err: 400, message: "Invalid body"}) }
+
+	let newDatabaseName: string = databody.dbName
+	let newDatabaseData: string = databody.dbData
+
+	let current_db: Db = mongodb_client.db(newDatabaseName)
+	current_db.collection("Data")
+
 	res.status(200).json({"message": "200"})
 })
 
-main()
+init_MongoClient()
+	.catch((err) => { 
+		err(`Connection to MongoDB instances was unsuccessful. Double check the URI and that the MongoDB server is active: ${err}`)
+		mongodb_client.close()
+	})
 
 module.exports = router

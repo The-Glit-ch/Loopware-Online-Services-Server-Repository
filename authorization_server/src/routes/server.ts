@@ -1,4 +1,4 @@
-// User endpoint
+// Server endpoint
 
 // Express
 import express from 'express'
