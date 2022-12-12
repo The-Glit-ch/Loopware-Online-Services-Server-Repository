@@ -24,6 +24,8 @@ app.use(express.json())
 if (auth_enabled){ app.use() }
 
 // Routes
+const datastore = require('./routes/database')
+app.use("/api", datastore)
 
 
 app.listen(port, () => {
