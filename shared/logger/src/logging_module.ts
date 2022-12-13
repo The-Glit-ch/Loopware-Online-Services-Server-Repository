@@ -8,7 +8,7 @@ import { join } from 'path'
 // Config
 const logging_directory: string = './logs'
 // Hell
-const logging_file_name: string = new Date().toLocaleString('en-US').replace("/", "-").replace("/", "-").replace(", ", "_").replace(":",".").replace(":", ".") + ".txt"
+const logging_file_name: string = new Date().toLocaleString('en-US').replace("/", "-").replace("/", "-").replace(", ", "_").replace(":",".").replace(":", ".") + ".log"
 
 // Private Methods
 function main(): void {if (!check_for_logging_directory()) { create_logging_directory() }}

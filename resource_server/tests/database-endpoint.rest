@@ -6,8 +6,9 @@ Content-Type: application/json
 {
 	"dbName": "example-db",
 	"dbData": {
-		"dbTitle": "Player_UUID",
-		"dbData": ["my_inv", "my_stats"]
+		"dbID": "ID",
+		"dbKey": "dbValue",
+		"dbArray": ["index-1", "index-2"]
 	}
 }
 
@@ -20,8 +21,22 @@ Content-Type: application/json
 
 {
 	"dbName": "example-db",
-	"dbQuery": {"dbTitle": "Player_UUID"},
+	"dbQuery": {"dbID": "ID"},
 	"dbQueryOptions": {}
+}
+
+###
+
+### Edit data in a collection
+
+PUT http://127.0.0.1:8080/rs/datastore/edit-data
+Content-Type: application/json
+
+{
+	"dbEditMode": "update",
+	"dbName": "example-db",
+	"dbData": {"$set": {"dbKey": "value-updated"}},
+	"dbQuery": {"dbID": "ID"}
 }
 
 ###
