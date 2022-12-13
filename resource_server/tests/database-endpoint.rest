@@ -1,14 +1,27 @@
-### Create a new database and write data
+### Create a new collection and write data
 
-POST http://127.0.0.1:8080/rs/datastore/new
+POST http://127.0.0.1:8080/rs/datastore/create-new
 Content-Type: application/json
 
 {
 	"dbName": "example-db",
 	"dbData": {
-		"newKey": "newValue",
-		"newKey": ["array_0", "array_1"]
+		"dbTitle": "Player_UUID",
+		"dbData": ["my_inv", "my_stats"]
 	}
+}
+
+###
+
+### Retreive data from a collection
+
+GET http://127.0.0.1:8080/rs/datastore/fetch-data
+Content-Type: application/json
+
+{
+	"dbName": "example-db",
+	"dbQuery": {"dbTitle": "Player_UUID"},
+	"dbQueryOptions": {}
 }
 
 ###

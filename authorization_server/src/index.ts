@@ -35,6 +35,7 @@ app.use("/auth/user", user_endpoint)
 app.use("/auth/server", server_endpoint)
 
 
+// Start Server
 app.listen(port, () => {
 	log(`Server started || Now listening on port ${port}`)
 })
