@@ -6,9 +6,10 @@ import express from 'express'
 const app = express()
 
 // *.ENV Configuration
+// Only for testing, in PROD please modify the dockerfile to contain your environment variables
 import { config } from 'dotenv'
 import { join } from 'path'
-let env_err = config({path: join(process.cwd(), './authorization_server/src/env/settings.env')}).error
+let env_err = config({path: join(process.cwd(), './authorization_server/env/config.env')}).error
 
 // Logger
 import { log, err } from "../../shared/logger/src/logging_module"
@@ -16,13 +17,13 @@ import { log, err } from "../../shared/logger/src/logging_module"
 // Config
 const port: string | number = process.env.PORT || 8081 // Fallback to port "8081" if .env is not loaded
 
-if (env_err != undefined){ err(`.ENV file was not successfuly loaded | ${env_err.message}`) }
+if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
 
 // Middleware
 app.use(express.json())
 
-// Logging Middlware
-app.use( (req, _res, next) => {
+// Logging Middleware
+app.use( (req, _, next) => {
 	log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
 	next()
 })

@@ -25,14 +25,14 @@ router.post("/register", (req, res) => {
 	// Client valid? If so generate new keys
 	if (validate_client_token(client_token, server_access_token)){
 		let access_token: string = generate_new_jwt({token: client_token}, String(process.env.SERVER_ACCESS_TOKEN), {expiresIn: '30s'}) 	// Can expire, Client Token + Server Access Token
-		let refresh_token: string = generate_new_jwt({token: client_token}, String(process.env.SERVER_REFRESH_TOKEN)) 						// Dosent expire, CLient Token + Refresh Access Token
+		let refresh_token: string = generate_new_jwt({token: client_token}, String(process.env.SERVER_REFRESH_TOKEN)) 						// Doesn't expire, CLient Token + Refresh Access Token
 
 		// TODO: Add a Redis Cache server to hold refresh tokens
 		token_storage.push(refresh_token)
 
 		return res.status(200).json({code: 200, access: access_token, refresh: refresh_token})
 	}else{
-		return res.status(401).json({code: 401, message: "Inavlid token"})
+		return res.status(401).json({code: 401, message: "Invalid token"})
 	}
 })
 

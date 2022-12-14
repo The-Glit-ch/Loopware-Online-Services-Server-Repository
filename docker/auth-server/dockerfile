@@ -1,0 +1,18 @@
+FROM node:latest
+
+
+WORKDIR /usr/src/app
+
+COPY ./build /app
+
+
+
+# Change your enviroment variables here, you can also add other variables if you modified the source code
+ENV PORT=8081
+# Client ID: 9aNodtMGO0QpE7iivB6OYmFxSOzWqjtKRGLJI36Ls8HT4lPjXu4Ql6XCm4dbg+PgTN8YxF7fXAA6ehEOntJSwg==
+ENV SERVER_ACCESS_TOKEN=zEAYGHnQgshrT+hAiE1IOG9wJDQZpfd3JaxDjdbO6kU=
+ENV SERVER_REFRESH_TOKEN=9gydVYrINijA8h3vOal3Icg/0InEoS5JZYaXLft9YdYiVFA9xcY+SpYsIz1D04/POpkixDJdoR7nHF8iOmcPMw==
+
+# Networking
+EXPOSE ${PORT}/tcp
+EXPOSE ${PORT}/udp

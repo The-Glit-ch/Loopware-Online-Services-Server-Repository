@@ -6,6 +6,8 @@ import express from "express";
 const app = express()
 
 // *.ENV Configuration
+// Only for testing, in PROD please modify the dockerfile to contain your environment variables
+// Uncomment if testing
 import { config } from 'dotenv'
 import { join } from 'path'
 let env_err = config({path: join(process.cwd(), './resource_server/env/config.env')}).error
