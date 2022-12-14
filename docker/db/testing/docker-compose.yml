@@ -1,0 +1,14 @@
+# Docker compose for local testing database
+services:
+  database:
+    image: mongo:latest
+    container_name: mongodb-testing
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - db-data:/home/deb/docker-volumes/mongodb-testing
+
+volumes:
+  db-data:
+    name: mongodb-testing-data

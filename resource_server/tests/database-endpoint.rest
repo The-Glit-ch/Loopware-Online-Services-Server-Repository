@@ -40,3 +40,17 @@ Content-Type: application/json
 }
 
 ###
+
+### Replace data in a collection
+
+PUT http://127.0.0.1:8080/rs/datastore/edit-data
+Content-Type: application/json
+
+{
+	"dbEditMode": "replace",
+	"dbName": "example-db",
+	"dbData": {"newData": "yep"},
+	"dbQuery": {"dbID": "ID"}
+}
+
+###

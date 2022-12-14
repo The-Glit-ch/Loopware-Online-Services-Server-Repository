@@ -15,10 +15,10 @@ config({path: join(process.cwd(), '../../.env/.env')})
 import { err, log, wrn } from '../../shared/logger/src/logging_module'
 
 // Config
-const port: string | number = process.env.PORT || 8080 						// Fallback to "8080" if *.env isint loaded
-const auth_enabled: string | boolean = process.env.AUTH_ENABLED || false 	// Fallback to "false" if *.env isint loaded
+const port: string | number = process.env.PORT || 8080 						// Fallback to "8080" if *.env isn't loaded
+const auth_enabled: string | boolean = process.env.AUTH_ENABLED || false 	// Fallback to "false" if *.env isn't loaded
 
-if (env_err != undefined){ err(`.ENV file was not successfuly loaded | ${env_err.message}`) }
+if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
 if (auth_enabled == false && env_err == undefined){ wrn("Authorization middleware is DISABLED") }
 
 // Middleware
@@ -34,7 +34,7 @@ app.use( (req, _, next) => {
 const auth = require('./middleware/auth')
 const datastore = require('./routes/datastore')
 if (auth_enabled){ app.use(auth) }
-app.use("/rs", datastore)
+app.use("/rs/datastore", datastore)
 
 
 app.listen(port, () => {
