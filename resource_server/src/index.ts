@@ -11,6 +11,7 @@ const app = express()
 import { config } from 'dotenv'
 import { join } from 'path'
 let env_err = config({path: join(process.cwd(), './resource_server/env/config.env')}).error
+if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
 config({path: join(process.cwd(), '../../.env/.env')})
 
 // Logger
@@ -20,7 +21,6 @@ import { err, log, wrn } from '../../shared/logger/src/logging_module'
 const port: string | number = process.env.PORT || 8080 						// Fallback to "8080" if *.env isn't loaded
 const auth_enabled: string | boolean = process.env.AUTH_ENABLED || false 	// Fallback to "false" if *.env isn't loaded
 
-if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
 if (auth_enabled == false && env_err == undefined){ wrn("Authorization middleware is DISABLED") }
 
 // Middleware

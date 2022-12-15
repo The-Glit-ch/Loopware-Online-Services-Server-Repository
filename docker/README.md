@@ -3,8 +3,8 @@ While these subsystems can be ran in a local environment, it is a good idea to i
 
 This folder containers docker files and docker compose files that can be used for quickly spinning up instances of the Loopware Online Subsystems
 
-## Note
-When running ``docker build`` make sure you have a fresh build of the subsystem you want to use in the same directory as the dockerfile. Example below
+## Example
+Example of how the directory should look like when building a docker image
 
 ```
 auth-server
@@ -16,6 +16,7 @@ auth-server
 			|..
 		|...
 			|..
+	|package.json
 ```
 
 Better documentation will come soon:tm:
