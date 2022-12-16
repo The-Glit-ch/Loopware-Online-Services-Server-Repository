@@ -8,16 +8,18 @@ const app = express()
 // *.ENV Configuration
 // Only for testing, in PROD please modify the dockerfile to contain your environment variables
 // Uncomment if testing
-// import { config } from 'dotenv'
-// import { join } from 'path'
-// let env_err = config({path: join(process.cwd(), './authorization_server/env/config.env')}).error
-// if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
+import { config } from 'dotenv'
+import { join } from 'path'
+let env_err = config({path: join(process.cwd(), './authorization_server/env/config.env')}).error
 
 // Logger
 import { log, err } from "../../shared/logger/src/logging_module"
 
 // Config
 const port: string | number = process.env.PORT || 8081 // Fallback to port "8081" if .env is not loaded
+
+// Sanity Check
+if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
 
 // Middleware
 app.use(express.json())
