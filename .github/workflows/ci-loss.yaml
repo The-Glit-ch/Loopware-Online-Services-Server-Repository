@@ -1,17 +1,13 @@
-name: "LOSS @ Pull Check"
+name: "Loss Code Checker"
 
-on: [pull_request]
+on: pull_request
 
 jobs:
-  loss-build:
+  loss-build-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-  loss-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
       

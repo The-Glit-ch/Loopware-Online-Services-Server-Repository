@@ -9,11 +9,11 @@
 	"keywords": [],
 	"author": "https://github.com/The-Glit-ch",
 	"license": "MIT",
+	"dependencies": {
+		"jsonwebtoken": "^8.5.1"
+	},
 	"devDependencies": {
 		"@types/jsonwebtoken": "^8.5.9",
 		"@types/node": "^18.11.10"
-	},
-	"dependencies": {
-		"jsonwebtoken": "^8.5.1"
 	}
 }

@@ -4,19 +4,21 @@
   "description": "Contains HTTP(S) endpoints for handling user/server authentication",
   "main": "index.js",
   "scripts": {
-    "build": "echo \"Building project files...\" && tsc"
+	"unit-test": "echo \"Running unit test(s)\" && jest",
+    "build": "echo \"Building project files for LOSS@Authorization Subsystem...\" && tsc"
   },
   "keywords": [],
   "author": "https://github.com/The-Glit-ch",
   "license": "MIT",
-  "devDependencies": {
-    "@types/express": "^4.17.14",
-    "@types/jsonwebtoken": "^8.5.9",
-    "@types/node": "^18.11.10"
-  },
   "dependencies": {
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.14",
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^18.11.10",
+    "jest": "^29.3.1"
   }
 }
