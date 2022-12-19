@@ -1,14 +1,68 @@
-// Server endpoint
-
-// Express
+// Imports
 import express from 'express'
+import { validateClientToken, generateJWT, verifyAndDecodeJWT } from '../../../shared/auth/src/authorization_module'
+import { log, err } from '../../../shared/logger/src/logging_module'
+
+// Docstring
+
+// Enums
+
+// Constants
 const router = express.Router()
 
-// Authorization Module
-import { validate_client_token, generate_new_jwt, verify_and_decode_jwt } from '../../../shared/auth/src/authorization_module'
+// Public Variables
+//TODO: Stop rewriting code and setup a proper database 
+var tokenStorage: Array<string> = [] 
 
-// Token Storage
-var token_storage: Array<string> = new Array<string> // TODO: Add a Redis Cache server to hold refresh tokens
+// Public Variables
+
+// _init()
+
+// Public Methods
+router.post("/register", (req, res) => {
+	let authorizationHeader: string | undefined = req.headers.authorization
+	let clientToken: string | undefined = authorizationHeader?.split(" ")[0]
+	let serverAccessToken: string | undefined = process.env.SERVER_ACCESS_TOKEN
+
+	// Client token provided?
+	if (clientToken == undefined){ return res.status(401).json({code: 401, message: "Client token not provided"}) }
+
+	// Server access token available?
+	if (serverAccessToken == undefined){ return res.status(500).json({code: 500, message: "Server token return undefined"}) }
+
+	// Client valid? If so generate new keys
+	if (validateClientToken(clientToken, serverAccessToken)){
+		let accessJWT: string
+		let refreshJWT: string
+
+		generateJWT({token: clientToken}, serverAccessToken)
+			.catch((error) => {
+				return res.status(500).json({code: 500, message: "Server error while generating access token"})
+			})
+
+	}
+})
+
+// Private Methods
+
+// Run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // (POST) || /auth/server/register
 // Register for a new access token. Client token must be provided for token to be granted

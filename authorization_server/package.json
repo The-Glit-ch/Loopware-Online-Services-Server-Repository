@@ -4,8 +4,8 @@
   "description": "Contains HTTP(S) endpoints for handling user/server authentication",
   "main": "index.js",
   "scripts": {
-	"unit-test": "echo \"Running unit test(s)\" && jest",
-    "build": "echo \"Building project files for LOSS@Authorization Subsystem...\" && tsc"
+	"test": "echo \"Running tests for \"LOSS @ Authorization Subsystem\"...\" && jest",
+    "build": "echo \"Building project files for \"LOSS @ Authorization Subsystem\"...\" && tsc"
   },
   "keywords": [],
   "author": "https://github.com/The-Glit-ch",

@@ -3,17 +3,20 @@ import { writeFile, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 
 // Docstring
-/*
-*Loopware Online Subsystem @ Logging Module || A simple to use logging module that can be customized
-*and changed to your hearts content
-*/
+/**
+ * Loopware Online Subsystem @ Logging Module || A simple to use logging module that can be customized
+ * and changed to your hearts content
+ */
 
 // Enums
 
 // Constants
 const loggingLocale: string = 'en-US'
 const loggingDirectory: string = './logs'
-const loggingFileName: string = ''
+const loggingFileName: string = new Date().toLocaleString(loggingLocale)
+	.replaceAll("/", "-")
+	.replaceAll(",", "_")
+	.replaceAll(":", ".")
 
 // Public Variables
 
@@ -27,12 +30,42 @@ function _init(): void{
 
 // Public Methods
 /**
- * Logs a message to stdout
- * @param { string | undefined} message - Message to log/write
+ * Logs a message to stdout and writes it to file
+ * @param { Array<string> } message - Message to log
  */
-function log(message?: string | any): void{
+export function log(...message: Array<string>): void{
 	let logTime: string = new Date().toLocaleDateString(loggingLocale)
-	let formattedMessage: string = `[LOG @ ${logTime}] ${message}`
+	let formattedMessage: string = `[LOG @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
+
+	console.log(formattedMessage)
+	_writeToLogFile(formattedMessage)
+		.catch((err) => {
+			console.error(`ERROR WRITING LOG FILE || ${err}`)
+		})
+}
+
+/**
+ * Logs a warning message to stdout and writes it to file
+ * @param { Array<string> } message - Message to log
+ */
+export function wrn(...message: Array<string>): void{
+	let logTime: string = new Date().toLocaleDateString(loggingLocale)
+	let formattedMessage: string = `[WRN @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
+
+	console.log(formattedMessage)
+	_writeToLogFile(formattedMessage)
+		.catch((err) => {
+			console.error(`ERROR WRITING LOG FILE || ${err}`)
+		})
+}
+
+/**
+ * Logs an error message to stdout and writes it to file
+ * @param { Array<string> } message - Message to log
+ */
+export function err(...message: Array<string>): void{
+	let logTime: string = new Date().toLocaleDateString(loggingLocale)
+	let formattedMessage: string = `[ERR @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -59,8 +92,7 @@ function _checkForLoggingDirectory(): void{
 
 /**
  * Writes data to a log file
- * @param { string } data - Data that should be written to the file. 
- * Must be a string
+ * @param { string } data - Data that should be written to the file. Must be a string
  * @returns void
  */
 function _writeToLogFile(data: string): Promise<void>{
@@ -73,44 +105,5 @@ function _writeToLogFile(data: string): Promise<void>{
 	})
 }
 
-// Exports
-_checkForLoggingDirectory()
-
-
-
-
-
-// Logging module for every subsystem/service
-// Required by every service
-
-
-// Config
-const logging_directory: string = './logs'
-// Hell
-const logging_file_name: string = new Date().toLocaleString('en-US').replace("/", "-").replace("/", "-").replace(", ", "_").replace(":",".").replace(":", ".") + ".log"
-
-
-// export function log(message: string):void {
-// 	let log_time: string = new Date().toLocaleTimeString('en-US')
-// 	let formated_message: string = `[LOG @ ${log_time}] ${message}`
-
-// 	console.log(formated_message)
-// 	write_to_log_file(formated_message)
-// }
-
-// export function err(message: string):void {
-// 	let log_time: string = new Date().toLocaleTimeString('en-US')
-// 	let formated_message: string = `[ERR @ ${log_time}] ${message}`
-
-// 	console.log(formated_message)
-// 	write_to_log_file(formated_message)
-// }
-
-// export function wrn(message: string):void {
-// 	let log_time: string = new Date().toLocaleTimeString('en-US')
-// 	let formated_message: string = `[WRN @ ${log_time}] ${message}`
-
-// 	console.log(formated_message)
-// 	write_to_log_file(formated_message)
-// }
-
+// Run
+_init()

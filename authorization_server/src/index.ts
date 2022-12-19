@@ -5,22 +5,24 @@ import { join } from 'path'
 import { log, err } from '../../shared/logger/src/logging_module'
 
 // Docstring
-/*
-* Loopware Online Subsystem @ Authorization Server || A simple, ready to go, Authorization Server
-* that provides OAUTH to incoming clients. Any incoming client provides the OAUTH server their Client ID
-* to begin the OAUTH process
-*/
+/**
+ * Loopware Online Subsystem @ Authorization Server || A simple, ready to go, Authorization Server
+ * that provides OAUTH to incoming clients. Any incoming client provides the OAUTH server their Client ID
+ * to begin the OAUTH process
+ */
 
 // Enums
 
 // Constants
 const app = express()
-const PORT = process.env.PORT || 8081 // Fallback in case of anything
+// Fallback in case of anything
+const PORT = process.env.PORT || 8081
 
 // Public Variables
 
 // Private Variables
-let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.auth-config.env')}).error // Only use .env files for local testing and debugging. Final builds should not include this
+// Only use .env files for local testing and debugging. Final builds should not include this
+let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.auth-config.env')}).error
 
 // _init()
 function _init(): void{
@@ -43,7 +45,7 @@ function _init(): void{
 
 	// Start listening
 	app.listen(PORT, () => {
-		log(`LOSS@Authorization-Server started! || Listening on port ${PORT}`)
+		log(`LOSS @ Authorization-Server started! || Listening on port ${PORT}`)
 	})
 
 }
@@ -52,6 +54,5 @@ function _init(): void{
 
 // Private Methods
 
-// Exports
-
+// Run
 _init()

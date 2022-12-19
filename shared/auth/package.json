@@ -4,7 +4,7 @@
 	"description": "Authorization module for all subsystems",
 	"main": "index.js",
 	"scripts": {
-		"build": "echo \"Building project files...\" && tsc"
+		"build": "echo \"Building \"LOSS @ Authorization Module\"...\" && tsc"
 	},
 	"keywords": [],
 	"author": "https://github.com/The-Glit-ch",
