@@ -27,7 +27,7 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 // _init()
 function _init(): void{
 	// Do a quick sanity check
-	if (_environmentLoadingError != undefined){ err(`.ENV file was not successfully loaded || ${_environmentLoadingError.message}`) }
+	if (_environmentLoadingError != undefined){ err(`.ENV file was not successfully loaded | ${_environmentLoadingError.message}`) }
 
 	// Enable JSON parsing express middleware
 	app.use(express.json())
@@ -47,7 +47,6 @@ function _init(): void{
 	app.listen(PORT, () => {
 		log(`LOSS @ Authorization-Server started! || Listening on port ${PORT}`)
 	})
-
 }
 
 // Public Methods

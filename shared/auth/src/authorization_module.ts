@@ -14,7 +14,7 @@ import { JwtPayload, sign, SignOptions, verify } from 'jsonwebtoken'
 
 // Public Variables
 
-// Public Variables
+// Private Variables
 
 // _init()
 
