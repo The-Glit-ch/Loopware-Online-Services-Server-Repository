@@ -40,7 +40,6 @@ function _init(): void{
 
 	// Setup routing
 	const _serverEndpoint = require('./routes/server')
-	
 	app.use("/auth/server", _serverEndpoint)
 
 	// Start listening

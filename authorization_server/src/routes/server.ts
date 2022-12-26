@@ -9,6 +9,7 @@ import { log, err } from '../../../shared/logger/src/logging_module'
 
 // Constants
 const router = express.Router()
+const TOKEN_EXP_TIME: string | undefined = process.env.TOKEN_EXP_TIME 
 
 // Public Variables
 //TODO: Stop rewriting code and setup a proper database 
@@ -19,153 +20,138 @@ var tokenStorage: Array<string> = []
 // _init()
 
 // Public Methods
+/**
+ * (POST) - /register || Authorization: Client Token
+ * Registers a user to have access to the other subsystems (authorization must be enabled for it to work)
+ * Client token must be provided in the Authorization header
+ * Returns an access token (expiration is based on the .TOKEN_EXP_TIME environment variable) and a refresh token (does not expire)
+ */
 router.post("/register", (req, res) => {
 	let authorizationHeader: string | undefined = req.headers.authorization
-	let clientToken: string | undefined = authorizationHeader?.split(" ")[0]
+	let clientToken: string | undefined = authorizationHeader?.split(" ")[1]
 	let serverAccessToken: string | undefined = process.env.SERVER_ACCESS_TOKEN
 	let serverRefreshToken: string | undefined = process.env.SERVER_REFRESH_TOKEN
 
 	// Client token provided?
-	if (clientToken == undefined){ return res.status(401).json({code: 401, message: "Client token not provided"}) }
+	if (clientToken == undefined){ res.status(401).json({code: 401, message: "Client token not provided"}); return; }
 
 	// Server access/refresh token available?
-	if (serverAccessToken == undefined || serverRefreshToken == undefined){ return res.status(500).json({code: 500, message: "Server token returned undefined"}) }
+	if (serverAccessToken == undefined || serverRefreshToken == undefined){ res.status(500).json({code: 500, message: "Server token returned undefined"}); return; }
 
 	// Client valid? If so generate new keys
 	if (validateClientToken(clientToken, serverAccessToken)){
-		let accessJWT: string = ""
-		let refreshJWT: string = ""
-
-		generateJWT({token: clientToken}, serverAccessToken)
+		generateJWT({token: clientToken}, serverAccessToken, {expiresIn: TOKEN_EXP_TIME})
 			.catch((error) => {
 				err(`Error while generating access token | ${error}`)
-				return res.status(500).json({code: 500, message: "Server error while generating access token"})
+				res.status(500).json({code: 500, message: "Server error while generating access token"})
+				return;
 			})
-			.then((token) => {
-				accessJWT = String(token)
+			.then((access_token) => {
+				generateJWT({token: clientToken}, String(serverRefreshToken))
+					.catch((error) => {
+						err(`Error while generating access token | ${error}`)
+						res.status(500).json({code: 500, message: "Server error while generating refresh token"})
+						return;
+					})
+					.then((refresh_token) => {
+						tokenStorage.push(String(refresh_token))
+						res.status(200).json({code: 200, message: {access_token: access_token, refresh_token: refresh_token}})
+						return;
+					})
 			})
-		
-		generateJWT({token: clientToken}, serverRefreshToken)
-			.catch((error) => {
-				err(`Error while generating access token | ${error}`)
-				return res.status(500).json({code: 500, message: "Server error while generating refresh token"})
-			})
-			.then((token) => {
-				refreshJWT = String(token)
-			})
-		
-		return res.status(200).json({code: 200, message: {access_token: accessJWT, refresh_token: refreshJWT}})
+	}else{
+		// Return 400 if client invalid
+		res.status(400).json({code: 400, message: "Invalid client token"})
+		return;
 	}
-
-	res.status(400).json({code: 400, message: "Invalid client token"})
 })
 
-// Private Methods
+/**
+ * (POST) - /refresh || Authorization: Refresh Token
+ * Refreshes the access token
+ * Returns a new access token and the time it expires in
+ */
+router.post("/refresh", (req, res) => {
+	let authorizationHeader: string | undefined = req.headers.authorization
+	let refreshToken: string | undefined = authorizationHeader?.split(" ")[1]
+	let serverRefreshToken: string | undefined = process.env.SERVER_REFRESH_TOKEN
+	let serverAccessToken: string | undefined = process.env.SERVER_ACCESS_TOKEN
 
-// Run
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// (POST) || /auth/server/register
-// Register for a new access token. Client token must be provided for token to be granted
-// router.post("/register", (req, res) => {
-// 	let auth_header: string |undefined = req.headers.authorization 					// Fetch the authorization header
-// 	let client_token: string | undefined = auth_header?.split(" ")[1] 				// Client token. Used for registration of a new access token
-// 	let server_access_token: string | undefined = process.env.SERVER_ACCESS_TOKEN	// Fetch the server access token
-
-// 	// Client token provided?
-// 	if (client_token == undefined){ return res.status(401).json({code: 401, message: "No authorization token provided"}) }
-// 	// Server access token available?
-// 	if (server_access_token == undefined){ return res.status(500).json({code: 500, message: "Internal Server Error. Server Access Token undefined"}) }
-
-// 	// Client valid? If so generate new keys
-// 	if (validate_client_token(client_token, server_access_token)){
-// 		let access_token: string = generate_new_jwt({token: client_token}, String(process.env.SERVER_ACCESS_TOKEN), {expiresIn: '30s'}) 	// Can expire, Client Token + Server Access Token
-// 		let refresh_token: string = generate_new_jwt({token: client_token}, String(process.env.SERVER_REFRESH_TOKEN)) 						// Doesn't expire, CLient Token + Refresh Access Token
-
-// 		// TODO: Add a Redis Cache server to hold refresh tokens
-// 		token_storage.push(refresh_token)
-
-// 		return res.status(200).json({code: 200, access: access_token, refresh: refresh_token})
-// 	}else{
-// 		return res.status(401).json({code: 401, message: "Invalid token"})
-// 	}
-// })
-
-// (POST) || /auth/server/refresh
-// Refreshes the access token. Takes in the refresh JWT in the authorization header
-// router.post("/refresh", (req, res) => {
-// 	let auth_header: string | undefined = req.headers.authorization 					// Fetch the authorization header
-// 	let refresh_jwt: string | undefined = auth_header?.split(" ")[1] 					// Refresh Token = (Token: Client ID, Secret: Server Refresh Token)
-// 	let server_refresh_token: string | undefined = process.env.SERVER_REFRESH_TOKEN 	// Fetch the server refresh token
-
-// 	// Refresh token provided?
-// 	if (refresh_jwt == undefined){ return res.status(401).json({code: 401, message: "No refresh token provided"}) }
-// 	// Server refresh token available?
-// 	if (server_refresh_token == undefined){ return res.status(500).json({code: 500, message: "Internal Server Error. Server Refresh Token undefined"}) }
-
-// 	// Is valid JWT? Return Data if so
-// 	let [success, data]: Array<any> = verify_and_decode_jwt(refresh_jwt, String(server_refresh_token)) 
-
-// 	// Invalid JWT
-// 	if (!success){ return res.status(401).json({code: 401, message: "Invalid JWT"}) }
+	// Refresh token provided?
+	if (refreshToken == undefined){ res.status(401).json({code: 401, message: "Refresh token not provided"}); return; }
 	
-// 	// Invalid token in the JWT (this is an extreme case and prob will never happen)
-// 	if (!validate_client_token(data.token, String(process.env.SERVER_ACCESS_TOKEN))){ return res.status(401).json({code: 401, message: "Invalid token"}) }
+	// Server access/refresh token available?
+	if (serverAccessToken == undefined || serverRefreshToken == undefined){ res.status(500).json({code: 500, message: "Server token returned undefined"}); return; }
 
-// 	// Generate new tokens
-// 	let new_access_token: string = generate_new_jwt({token: data.token}, server_refresh_token, {expiresIn: '30s'})
+	// Validate client
+	verifyAndDecodeJWT(refreshToken, serverRefreshToken)
+		.catch((error) => {
+			err(`Error while decoding refresh token | ${error}`)
+			res.status(401).json({code: 401, message: "Invalid token"})
+			return;
+		})
+		.then((data) => {
+			// Validate client token
+			if(validateClientToken(data.clientToken.token, String(serverAccessToken))){
+				generateJWT({token: data.clientToken.token}, String(serverAccessToken), {expiresIn: TOKEN_EXP_TIME})
+					.catch((error) => {
+						err(`Error while generating access token | ${error}`)
+						res.status(500).json({code: 500, message: "Server error while generating access token"})
+						return;
+					})
+					.then((token) => {
+						// Return new access token
+						res.status(200).json({code: 200, message: {access_token: token, expires_in: TOKEN_EXP_TIME}})
+						return;
+					})
+			}else{
+				// Return 401 if invalid client token + JWT combo
+				res.status(401).json({code: 401, message: "Invalid client token"})
+				return;
+			}
+		})
+})
 
-// 	return res.status(200).json({
-// 		code: 200,
-// 		access_token: new_access_token,
-// 		expiresIn: "30s"
-// 	})
+/**
+ * (POST) - /logout || Authorization: Refresh Token
+ * Deregisters a client by revoking their refresh token 
+ */
+router.post("/logout", (req, res) => {
+	let authorizationHeader: string | undefined = req.headers.authorization
+	let refreshToken: string | undefined = authorizationHeader?.split(" ")[1]
+	let serverRefreshToken: string | undefined = process.env.SERVER_REFRESH_TOKEN
+	let serverAccessToken: string | undefined = process.env.SERVER_ACCESS_TOKEN
 
-// })
+	// Refresh token provided?
+	if (refreshToken == undefined){ res.status(401).json({code: 401, message: "Refresh token not provided"}); return; }
 
-// (POST) || /auth/server/logout
-// Logouts the specified client. Must provide refresh token else will return a 401
-// router.post("/logout", (req, res) => {
-// 	let auth_header: string | undefined = req.headers.authorization 					// Fetch the authorization header
-// 	let refresh_jwt: string | undefined = auth_header?.split(" ")[1] 					// Will be the refresh token
-// 	let server_refresh_token: string | undefined = process.env.SERVER_REFRESH_TOKEN 	// Fetch the server access toke
+	// Server access/refresh token available?
+	if (serverAccessToken == undefined || serverRefreshToken == undefined){ res.status(500).json({code: 500, message: "Server token returned undefined"}); return; }
 
-// 	// Refresh token provided?
-// 	if (refresh_jwt == undefined){ return res.status(401).json({code: 401, message: "No token provided"}) }
-// 	// Server refresh token available?
-// 	if (server_refresh_token == undefined){ return res.status(500).json({code: 500, message: "Internal Server Error. Server Refresh Token undefined"}) }
+	// Validate client
+	verifyAndDecodeJWT(refreshToken, serverRefreshToken)
+		.catch((error) => {
+			err(`Error while decoding refresh token | ${error}`)
+			res.status(401).json({code: 401, message: "Invalid token"})
+			return;
+		})
+		.then((data) => {
+			// Validate client token
+			if (validateClientToken(data.clientToken.token, String(serverAccessToken))){
+				// Fetch token
+				let tokenIndex: number = tokenStorage.indexOf(String(refreshToken))
+				// Check index of token
+				if (tokenIndex == -1){ res.status(404).json({code: 404, message: "Already logged out"}); return; }
+				// Remove the token
+				tokenStorage.splice(tokenIndex, 1)
 
-// 	// Is valid JWT? Return data if so
-// 	let [success, data]: Array<any> = verify_and_decode_jwt(refresh_jwt, String(server_refresh_token))
-
-// 	// Invalid JWT
-// 	if (!success){ return res.status(401).json({code: 401, message: "Invalid JWT"}) }
-	
-// 	// Invalid token in the JWT (this is an extreme case and prob will never happen)
-// 	if (!validate_client_token(data.token, String(process.env.SERVER_ACCESS_TOKEN))){ return res.status(401).json({code: 401, message: "Invalid token"}) }
-	
-// 	// Token in storage?
-// 	if (!token_storage.includes(refresh_jwt)){ return res.status(401).json({code: 401, message: "Token no longer valid. Logout already done"}) }
-
-// 	// Remove token from storage
-// 	token_storage.splice(token_storage.indexOf(refresh_jwt), 1)
-// 	res.status(200).json({code: 200, "message": "Logout successful"})
-// })
+				res.status(200).json({code: 200, message: "Successful logout"})
+				return;
+			}else{
+				res.status(401).json({code: 401, message: "Invalid client token"})
+				return;
+			}
+		})
+})
 
 module.exports = router

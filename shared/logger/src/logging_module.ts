@@ -99,7 +99,7 @@ function _writeToLogFile(data: string): Promise<void>{
 	let path: string = join(process.cwd(), loggingDirectory, loggingFileName)
 
 	return new Promise((_, reject) => {
-		writeFile(path, data, (err) => {
+		writeFile(path, `${data}\n`, {flag: 'a+'}, (err) => {
 			if (err){ reject(err) }
 		})
 	})

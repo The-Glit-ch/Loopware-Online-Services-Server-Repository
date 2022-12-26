@@ -53,12 +53,12 @@ export function generateJWT(clientToken: object, serverToken: string, options?: 
  * @param { string } serverToken The server token to decode with
  * @returns { Promise<string | JwtPayload | undefined> } Returns a decoded JWT payload
  */
-export function verifyAndDecodeJWT(clientJWT: string, serverToken: string): Promise<string | JwtPayload | undefined>{
+export function verifyAndDecodeJWT(clientJWT: string, serverToken: string): Promise<any> {
 	return new Promise((resolve, reject) => {
-		verify(clientJWT, serverToken, {}, (error, data) => {
+		verify(clientJWT, serverToken, {}, (error, decoded) => {
 			if (error){ reject(error) }
 
-			resolve(data)
+			resolve(decoded)
 		})
 	})
 }
