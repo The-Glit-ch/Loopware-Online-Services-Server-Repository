@@ -3,6 +3,6 @@
 import os
 
 # Authorization Subsystem
-os.chdir("./authorization_server")
+os.chdir("../authorization_server")
 os.system("npm ci")
 os.system("npm run test")

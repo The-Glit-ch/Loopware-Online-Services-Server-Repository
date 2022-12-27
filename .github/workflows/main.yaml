@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: cd ./bin && python test.py
+      - run: echo 'TBI'
   
   unit-tests:
     runs-on: ubuntu-latest
@@ -19,5 +19,5 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: echo 'TBI'
+      - run: cd ./bin && python test.py
 
