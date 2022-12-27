@@ -4,16 +4,16 @@
 	"description": "Authorization module for all subsystems",
 	"main": "index.js",
 	"scripts": {
-		"build": "echo \"Building project files...\" && tsc"
+		"build": "echo \"Building \"LOSS @ Authorization Module\"...\" && tsc"
 	},
 	"keywords": [],
 	"author": "https://github.com/The-Glit-ch",
 	"license": "MIT",
+	"dependencies": {
+		"jsonwebtoken": "^9.0.0"
+	},
 	"devDependencies": {
 		"@types/jsonwebtoken": "^8.5.9",
 		"@types/node": "^18.11.10"
-	},
-	"dependencies": {
-		"jsonwebtoken": "^8.5.1"
 	}
 }

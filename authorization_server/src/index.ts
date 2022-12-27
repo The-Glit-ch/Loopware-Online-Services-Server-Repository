@@ -1,44 +1,56 @@
-// Authorization Server
-// Handles both User and Server Authorization via JWT
-
-// Express
-import express from 'express'
-const app = express()
-
-// *.ENV Configuration
-// Only for testing, in PROD please modify the dockerfile to contain your environment variables
-// Uncomment if testing
-import { config } from 'dotenv'
+// Imports
+import express from 'express';
+import { config } from 'dotenv';
 import { join } from 'path'
-let env_err = config({path: join(process.cwd(), './authorization_server/env/config.env')}).error
+import { log, err } from '../../shared/logger/src/logging_module'
 
-// Logger
-import { log, err } from "../../shared/logger/src/logging_module"
+// Docstring
+/**
+ * Loopware Online Subsystem @ Authorization Server || A simple, ready to go, Authorization Server
+ * that provides OAUTH to incoming clients. Any incoming client provides the OAUTH server their Client ID
+ * to begin the OAUTH process
+ */
 
-// Config
-const port: string | number = process.env.PORT || 8081 // Fallback to port "8081" if .env is not loaded
+// Enums
 
-// Sanity Check
-if (env_err != undefined){ err(`.ENV file was not successfully loaded | ${env_err.message}`) }
+// Constants
+const app = express()
+// Fallback in case of anything
+const PORT = process.env.PORT || 8081
 
-// Middleware
-app.use(express.json())
+// Public Variables
 
-// Logging Middleware
-app.use( (req, _, next) => {
-	log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
-	next()
-})
+// Private Variables
+// Only use .env files for local testing and debugging. Final builds should not include this
+let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.auth-config.env')}).error
 
-// Routes
-const user_endpoint = require('./routes/user')
-const server_endpoint = require('./routes/server')
+// _init()
+function _init(): void{
+	// Do a quick sanity check
+	if (_environmentLoadingError != undefined){ err(`.ENV file was not successfully loaded | ${_environmentLoadingError.message}`) }
 
-app.use("/auth/user", user_endpoint)
-app.use("/auth/server", server_endpoint)
+	// Enable JSON parsing express middleware
+	app.use(express.json())
 
+	// Log all incoming connections to the server
+	app.use((req, _res, next) => {
+		log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
+		next()
+	})
 
-// Start Server
-app.listen(port, () => {
-	log(`Server started || Now listening on port ${port}`)
-})
+	// Setup routing
+	const _serverEndpoint = require('./routes/server')
+	app.use("/auth/server", _serverEndpoint)
+
+	// Start listening
+	app.listen(PORT, () => {
+		log(`LOSS @ Authorization-Server started! || Listening on port ${PORT}`)
+	})
+}
+
+// Public Methods
+
+// Private Methods
+
+// Run
+_init()

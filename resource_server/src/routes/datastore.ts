@@ -9,7 +9,7 @@ import { Collection, Db, MongoClient } from 'mongodb'
 const mongodb_uri: string | undefined = process.env.MONGO_URI					// Fetch mongo uri
 const mongodb_client: MongoClient = new MongoClient(String(mongodb_uri))		// Create a new client with the URI passed
 const active_database: string = "datastore-testing"								// Change when in a PROD environment
-var connected: boolean = false													// Connected to database?				
+var connected: boolean = false													// Connected to database? TODO: IMPLEMENT THIS			
 
 // Logger
 import { log, err } from '../../../shared/logger/src/logging_module'

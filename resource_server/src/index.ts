@@ -10,8 +10,7 @@ const app = express()
 // Uncomment if testing
 import { config } from 'dotenv'
 import { join } from 'path'
-let env_err = config({path: join(process.cwd(), './resource_server/env/config.env')}).error
-config({path: join(process.cwd(), '../../.env/.env')})
+let env_err = config({path: join(process.cwd(), './.env/rs-config.env')}).error
 
 // Logger
 import { err, log, wrn } from '../../shared/logger/src/logging_module'
