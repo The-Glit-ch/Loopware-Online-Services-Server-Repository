@@ -27,26 +27,26 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 ## Current Features
 ```diff
 Authorization System
-+	Server Authorization			[DONE]
--	User Authorization				[TODO]
++ Server Authorization					[DONE]
+- User Authorization					[TODO]
 
 Datastore Service
-+	Datastore						[DONE]
-+		Authorization Support		[DONE]
--	Leader Board					[TODO]
--		Authorization Support		[TODO]
++ Datastore								[DONE]
++ 	Authorization Support				[DONE]
+- Leader Board							[TODO]
+- 	Authorization Support				[TODO]
 
 Net/Live Service || Not started
--	VOIP							[TODO]
--	Game Analytics					[TODO]
+- VOIP									[TODO]
+- Game Analytics						[TODO]
 
 Other
-- Dashboard							[TODO]
-- Godot Plugin/SDK's				[TODO]
+- Dashboard								[TODO]
+- Godot Plugin/SDK's					[TODO]
 
 Modules
-+	Logging Module					[DONE]
-+	Authorization Module			[DONE]
++ Logging Module						[DONE]
++ Authorization Module					[DONE]
 ```
 
 # THIS IS NOT DONE. DON'T USE IN PRODUCTION (yet.)
