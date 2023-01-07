@@ -1,14 +1,16 @@
-# Docker compose for local testing/prod database
 services:
-  database:
+  loss-database:
     image: mongo:latest
-    container_name: mongodb-LOSS
+    container_name: loss-mongodb
     restart: always
     ports:
       - 27017:27017
     volumes:
-      - db-data:/home/deb/docker-volumes/mongodb-LOSS-volume
+      - mongo-storage:/home/deb/docker-volumes/loss-mongodb-storage # Change to your liking
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=loss-mongodb # Change username to something other than default
+      - MONGO_INITDB_ROOT_PASSWORD=admin        # Change password to something other than default
 
 volumes:
-  db-data:
-    name: mongodb-LOSS-volume
+  mongo-storage:
+    name: loss-mongodb-storage

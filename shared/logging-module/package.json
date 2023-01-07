@@ -1,0 +1,15 @@
+{
+  "name": "logging-module",
+  "version": "1.0.0",
+  "description": "Logging module for all subsystems",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo \"Building \"LOSS @ Logger Module\"...\" && tsc"
+  },
+  "keywords": [],
+  "author": "https://github.com/The-Glit-ch",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.11.18"
+  }
+}
