@@ -29,17 +29,25 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 	- User/Client Authorization (DONE)✅
 <br>
 * Datastore Service
+<br>
 	- Datastore (DONE)✅
+<br>
 	- Leaderboard (TODO)❌
+<br>
 	- Asset Streaming (TODO) ❌
 <br>
 * Net/Live Service
+<br>
 	- VoIP (TODO)❌
+<br>
 	- NAT Punchthrough (TODO)❌
+<br>
 	- Game/App Analytics (TODO)❌
 <br>
 * Other
+<br>
 	- Godot Plugin/SDK (Working) 👨‍💻
+<br>
 	- Dashboard (TODO) ❌
 
 # THIS IS NOT DONE. DON'T USE IN PRODUCTION (yet.)
