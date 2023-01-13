@@ -4,7 +4,7 @@
   "description": "Contains HTTP(S) endpoints for handling database reading/writing.",
   "main": "index.js",
   "scripts": {
-    "build": "echo \"Building LOSS @ Authorization Server\" && tsc"
+    "build": "echo \"Building LOSS @ Datastore Service Server\" && tsc"
   },
   "keywords": [],
   "author": "https://www.github.com/The-Glit-ch",
