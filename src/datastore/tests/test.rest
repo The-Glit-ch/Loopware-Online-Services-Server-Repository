@@ -1,0 +1,22 @@
+###
+
+POST http://127.0.0.1:8080/leaderboard/new-leaderboard
+Content-Type: application/json
+
+{
+	"leaderboardName": "map-1"
+}
+
+###
+
+###
+
+POST http://127.0.0.1:8080/leaderboard/new-category
+Content-Type: application/json
+
+{
+	"leaderboardName": "map-2",
+	"leaderboardCategory": "easy"
+}
+
+###

@@ -18,12 +18,11 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 // Constants
 const app = express()
 const PORT: string | number = process.env.PORT || 8080
-const AUTH_ENABLED: string | boolean = process.env.AUTH_ENABLED || false
+const AUTH_ENABLED: boolean = (process.env.AUTH_ENABLED == "true") || false
 
 // Public Variables
 
 // Private Variables
-
 
 // _init()
 function _init(): void{
@@ -43,8 +42,10 @@ function _init(): void{
 	// Routes
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
+	const _leaderboardRoute = require('./routes/leaderboard')
 	if (AUTH_ENABLED){ app.use(_authorizationMiddleware) }
 	app.use("/datastore", _datastoreRoute)
+	app.use("/leaderboard", _leaderboardRoute)
 
 	// Start listening
 	app.listen(PORT, () => {

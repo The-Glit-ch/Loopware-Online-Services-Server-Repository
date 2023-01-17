@@ -4,6 +4,10 @@ import { Collection, Db, MongoClient } from 'mongodb'
 import { log, err, wrn } from '../../../../shared/logging-module/src/logging_module'
 
 // Docstring
+/**
+ * Loopware Online Subsystem @ Datastore Endpoint || Simple and generic endpoint that allows
+ * for writing/reading to a MongoDB database
+ */
 
 // Enums
 
@@ -26,19 +30,18 @@ const mongoClient: MongoClient = new MongoClient(String(process.env.MONGO_DATAST
 
 // Public Variables
 
-
 // Private Variables
 var _connectedToDB: boolean = true
 
 // _init()
 async function _init():Promise<void> {
-	// Connect to MongoInstance
+	// Connect to Mongo Instance
 	try{
 		await mongoClient.connect()
-		log(`Connection to MongoDB instance was successful`)
+		log(`Connection to MongoDB@Datastore was successful`)
 		_connectedToDB = true
 	}catch (error){
-		wrn(`Connection to MongoDB instance was unsuccessful | ${error}`)
+		wrn(`Connection to MongoDB@Datastore was unsuccessful | ${error}`)
 		_connectedToDB = false
 	}	
 }
@@ -151,7 +154,7 @@ router.get("/fetch-data", async (req, res) => {
 	try{
 		let currentDatabase: Db = mongoClient.db()
 		let currentCollection: Collection = currentDatabase.collection(data.collectionName)
-		currentCollection.findOne(fetchOptions.fetchQuery)
+		currentCollection.findOne(fetchOptions.fetchQuery, {projection: {"_id": 0}})
 			.catch((error) => {
 				err(`Internal Server Error while fetching data from [${data.collectionName}@Datastore] | ${error}`)
 				res.status(500).json({code: 500, message: "Error fetching data"})
@@ -264,6 +267,50 @@ router.put("/replace-data", (req, res) => {
 
 })
 
+router.delete("/delete-data", (req, res) => {
+	// Retrieve new write data
+	let dataBody: any | object = req.body
+
+	// Payload empty?
+	if (Object.keys(dataBody).length === 0){ res.status(400).json({code: 400, message: "Empty request"}); return; }
+
+	// Store data
+	let data: incomingData = {
+		collectionName: dataBody.cName,
+		collectionData: {}
+	}
+
+	let fetchOptions: fetchQueryOptions = {
+		fetchQuery: dataBody.cFetchOptions.fetchQuery,
+		fetchSort: {},
+		fetchProjection: {}
+	}
+
+	// Check connection
+	if (!_connectedToDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
+
+	// Delete data in collection
+	try{
+		let currentDatabase: Db = mongoClient.db()
+		let currentCollection: Collection = currentDatabase.collection(data.collectionName)
+		currentCollection.deleteOne(fetchOptions.fetchQuery)
+			.catch((error) => {
+				err(`Internal Server Error while replacing data from [${data.collectionName}@Datastore] | ${error}`)
+				res.status(500).json({code: 500, message: "Error replacing data"})
+				return
+			})
+			.then(() => {
+				log(`Successfully replaced data on [${data.collectionName}@Datastore]`)
+				res.status(200).json({code: 200, message: "Success"})
+				return
+			})
+	}catch (error){
+		err(`Fatal error occurred on "/delete-data" endpoint | ${error}`)
+		res.status(400).json({code: 400, message: "Invalid request body"})
+		return
+	}
+})
+
 // Private Methods
 function _retryConnection(): void{
 	let count: number = 0
@@ -274,11 +321,11 @@ function _retryConnection(): void{
 
 // Run
 mongoClient.on('serverHeartbeatSucceeded', () => {
-	if (!_connectedToDB){ log(`Reconnected to MongoDB instance`); _connectedToDB = true; }
+	if (!_connectedToDB){ log(`Reconnected to MongoDB@Datastore`); _connectedToDB = true; }
 })
 
 mongoClient.on('serverHeartbeatFailed', () => {
-	wrn(`Connection to MongoDB instance was dropped | Attempting reconnection`)
+	wrn(`Connection to MongoDB@Datastore was dropped | Attempting reconnection`)
 	if(_connectedToDB == true){ _retryConnection() }
 	_connectedToDB = false
 })
