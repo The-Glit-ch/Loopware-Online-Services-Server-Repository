@@ -89,7 +89,7 @@ router.post("/new-category", (req, res) => {
 		let template: Object = {"leaderboardCategory": leaderboardData.leaderboardCategory, "leaderboardData": []}
 
 		// Null checks
-		if (leaderboardData.leaderboardCategory == null || leaderboardData.leaderboardCategory == undefined) { res.status(400).json({code: 400, message: "Leaderboard Category cannot be empty/undefined"}); return; }
+		if (containsNull(template)) { res.status(400).json({code: 400, message: "Leaderboard Category cannot be empty/undefined"}); return; }
 		
 		// Check for duplicate category
 		currentLeaderboard.findOne({"leaderboardCategory": leaderboardData.leaderboardCategory})
@@ -141,11 +141,10 @@ router.post("/new-entry", (req, res) => {
 		let currentLeaderboard: Collection = currentDatabase.collection(leaderboardData.leaderboardName)
 
 		// Null checks
-		if (leaderboardData.leaderboardCategory == null || leaderboardData.leaderboardEntry == null){ res.status(400).json({code: 400, message: "Leaderboard Category/Entry cannot be empty/undefined"}); return; }
+		if (containsNull(leaderboardData)){ res.status(400).json({code: 400, message: "Leaderboard Category/Entry cannot be empty/undefined"}); return; }
 
 		// Fetch category
-		currentLeaderboard.findOne({"leaderboardCategory": leaderboardData.leaderboardCategory})
-			.catch()
+		currentLeaderboard.updateOne({"leaderboardCategory": leaderboardData.leaderboardCategory}, {"$set": {"leaderboardData": leaderboardData.leaderboardEntry}})
 
 	}catch (error){
 
@@ -153,8 +152,17 @@ router.post("/new-entry", (req, res) => {
 })
 
 // Private Methods
+/**
+ * Checks if a given object contains a field with Null or Undefined
+ * Returns true if contains either
+ * @param { object } object - The object to check 
+ * @returns { boolean } True or False if Null or Undefined is found
+ */
+function containsNull(object: any): boolean{
+	for (var key in object){ return (object[key] == null || object[key] == undefined); }
+	return false
+}
 
 // Run
-
 _init()
 module.exports = router
