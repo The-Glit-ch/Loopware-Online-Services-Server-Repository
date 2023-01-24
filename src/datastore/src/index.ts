@@ -43,9 +43,11 @@ function _init(): void{
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
 	const _leaderboardRoute = require('./routes/leaderboard')
+	const _streamRoute = require('./routes/stream')
 	if (AUTH_ENABLED){ app.use(_authorizationMiddleware) }
 	app.use("/datastore", _datastoreRoute)
 	app.use("/leaderboard", _leaderboardRoute)
+	app.use("/stream", _streamRoute)
 
 	// Start listening
 	app.listen(PORT, () => {

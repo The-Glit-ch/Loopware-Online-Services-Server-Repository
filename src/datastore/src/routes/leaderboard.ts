@@ -1,3 +1,5 @@
+// Todo: Rework this system, it could be better
+
 // Imports
 import express from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
@@ -145,6 +147,9 @@ router.post("/new-entry", (req, res) => {
 
 		// Fetch category
 		currentLeaderboard.updateOne({"leaderboardCategory": leaderboardData.leaderboardCategory}, {"$set": {"leaderboardData": leaderboardData.leaderboardEntry}})
+			.catch((error) => {
+
+			})
 
 	}catch (error){
 
@@ -164,5 +169,10 @@ function containsNull(object: any): boolean{
 }
 
 // Run
-_init()
+//_init()
+router.use((req, res, next) => {
+	res.status(501).json({code: 501, message: "TBI"})
+	next()
+})
+
 module.exports = router

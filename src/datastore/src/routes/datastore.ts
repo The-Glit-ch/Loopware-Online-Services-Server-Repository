@@ -5,7 +5,7 @@ import { log, err, wrn } from '../../../../shared/logging-module/src/logging_mod
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Datastore Endpoint || Simple and generic endpoint that allows
+ * Loopware Online Subsystem @ /datastore Endpoint || Simple and generic endpoint that allows
  * for writing/reading to a MongoDB database
  */
 
@@ -129,7 +129,7 @@ router.post("/write-data-bulk", (req, res) => {
 })
 
 router.get("/fetch-data", async (req, res) => {
-	// Retrieve new write data
+	// Retrieve data
 	let dataBody: any | object = req.body
 
 	// Payload empty?
@@ -174,7 +174,7 @@ router.get("/fetch-data", async (req, res) => {
 })
 
 router.patch("/update-data", (req, res) => {
-	// Retrieve new write data
+	// Retrieve new update data
 	let dataBody: any | object = req.body
 
 	// Payload empty?
@@ -223,7 +223,7 @@ router.patch("/update-data-bulk", (req, res) => {
 })
 
 router.put("/replace-data", (req, res) => {
-	// Retrieve new write data
+	// Retrieve new replacement data
 	let dataBody: any | object = req.body
 
 	// Payload empty?
@@ -268,7 +268,7 @@ router.put("/replace-data", (req, res) => {
 })
 
 router.delete("/delete-data", (req, res) => {
-	// Retrieve new write data
+	// Retrieve delete data
 	let dataBody: any | object = req.body
 
 	// Payload empty?
@@ -310,6 +310,44 @@ router.delete("/delete-data", (req, res) => {
 		return
 	}
 })
+
+router.delete("/delete-collection", (req, res) => {
+	// Retrieve collection delete data
+	let dataBody: any | object = req.body
+
+	// Payload empty?
+	if (Object.keys(dataBody).length === 0){ res.status(400).json({code: 400, message: "Empty request"}); return; }
+
+	// Store data
+	let data: incomingData = {
+		collectionName: dataBody.cName,
+		collectionData: {}
+	}
+
+	// Check connection
+	if (!_connectedToDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
+
+	// Drop collection
+	try{
+		let currentDatabase: Db = mongoClient.db()
+		currentDatabase.dropCollection(data.collectionName)
+			.catch((error) => {
+				err(`Internal Server Error while dropping collection [${data.collectionName}@Datastore] | ${error}`)
+				res.status(500).json({code: 500, message: "Error dropping collection"})
+				return
+			})
+			.then(() => {
+				log(`Successfully dropped collection [${data.collectionName}@Datastore]`)
+				res.status(200).json({code: 200, message: "Success"})
+				return	
+			})
+	}catch (error){
+		err(`Fatal error occurred on "/delete-collection" endpoint | ${error}`)
+		res.status(400).json({code: 400, message: "Invalid request body"})
+		return
+	}
+})
+
 
 // Private Methods
 function _retryConnection(): void{

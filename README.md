@@ -31,9 +31,9 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 * Datastore Service
 	- Datastore (DONE)✅
 
-	- Leaderboard (TODO)❌
+	- Leaderboard (Refactor) ⚠
 
-	- Asset Streaming (TODO) ❌
+	- Asset Streaming (DONE) ✅
 
 * Net/Live Service
 	- VoIP (TODO)❌
