@@ -1,5 +1,6 @@
 {
 	"cSpell.words": [
 		"leaderboard"
-	]
+	],
+	"python.analysis.typeCheckingMode": "basic"
 }
