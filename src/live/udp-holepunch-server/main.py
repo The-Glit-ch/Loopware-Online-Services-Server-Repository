@@ -48,7 +48,7 @@ def _init() -> None:
 					
 					# Add client to connected clients list and send back a response
 					_connectedClients.append(incomingAddr)
-					_connectedClients[incomingAddr].append("A")
+					print(_connectedClients)
 					UDPServerSocket.sendto(dumps({"message": "Connected", "hostCode": ""}).encode('utf-8'), incomingAddr)
 
 					log("New client has been registered")
