@@ -5,6 +5,7 @@ from typing import Final
 from dotenv import load_dotenv
 from json import dumps, loads
 from modules.logging_module import log
+from modules.utils_module import generateNewBindCode
 load_dotenv(path.join(getcwd(), ".env/.live-udp-config.env"))
 
 # Docstring
@@ -48,7 +49,6 @@ def _init() -> None:
 					
 					# Add client to connected clients list and send back a response
 					_connectedClients.append(incomingAddr)
-					print(_connectedClients)
 					UDPServerSocket.sendto(dumps({"message": "Connected", "hostCode": ""}).encode('utf-8'), incomingAddr)
 
 					log("New client has been registered")
@@ -58,6 +58,10 @@ def _init() -> None:
 					continue
 			
 			
+			if incomingMessage["connectionType"] == "Host":
+				pass
+				
+
 			if incomingMessage["connectionType"] == "Bind":
 				bindingRemoteAddr = incomingMessage["remoteBind"]
 				print(bindingRemoteAddr)

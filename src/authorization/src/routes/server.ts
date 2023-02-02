@@ -138,7 +138,7 @@ router.post("/logout", (req, res) => {
 		})
 		.then((data) => {
 			// Validate client token
-			if (validateClientToken(data.clientToken.token, String(serverAccessToken))){
+			if (validateClientToken(data.token, String(serverAccessToken))){
 				// Fetch token
 				let tokenIndex: number = tokenStorage.indexOf(String(refreshToken))
 				// Check index of token
