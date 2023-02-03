@@ -23,7 +23,9 @@ BUFFER_SIZE: Final[int] = 1024
 # Public Variables
 
 # Private Variables
+# TODO: Find a better way of doing this shit
 _connectedClients: list = []
+_hostingClients: dict = {}
 
 # _init()
 def _init() -> None:
@@ -59,7 +61,18 @@ def _init() -> None:
 			
 			
 			if incomingMessage["connectionType"] == "Host":
-				pass
+				# Check for registration
+				if incomingAddr not in _connectedClients:
+					returnData: bytes = returnEncodedMessage({"code": 401, "message": "Not registered with UDP Server"})
+					UDPServerSocket.sendto(returnData, incomingAddr)
+				
+				log("Attempting to create new hosting session for client")
+				newBindCode: str = generateNewBindCode()
+
+
+
+				returnData: bytes = returnEncodedMessage({"code": 200, "data": newBindCode})
+				_hostingClients[incomingAddr] = newBindCode
 				
 
 			if incomingMessage["connectionType"] == "Bind":
@@ -70,6 +83,8 @@ def _init() -> None:
 # Public Methods
 
 # Private Methods
+def returnEncodedMessage(data: dict) -> bytes:
+	return dumps(data).encode('utf-8')
 
 # Run
 if __name__ == "__main__":
