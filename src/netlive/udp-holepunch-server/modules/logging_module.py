@@ -5,7 +5,7 @@ from os import path
 
 # Docstring
 # /**
-# * Loopware Online Subsystem @ Logging Module: Python || Simple logging module similar to the JS/TS version
+# * Loopware Online Subsystem @ Logging Module: Python || Logging Module for Python
 # * just made for python
 # */
 
