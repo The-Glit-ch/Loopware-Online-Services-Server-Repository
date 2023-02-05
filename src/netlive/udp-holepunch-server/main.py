@@ -1,31 +1,46 @@
 # Imports
 import socket
-from os import path, getcwd, environ
+import schedule
+from os import environ
+from json import loads, dumps
 from typing import Final
 from dotenv import load_dotenv
-from json import dumps, loads
-from modules.logging_module import log
+from pytypes.net_types import ConnectionInfo
 from modules.utils_module import generateNewBindCode
-load_dotenv(path.join(getcwd(), ".env/.live-udp-config.env"))
+from modules.authorization_module import validateClientToken, verifyAndDecodeJWT
+from modules.logging_module import log, wrn
+load_dotenv(".env/.live-udp-config.env")
 
 # Docstring
 # /**
 # * Loopware Online Subsystem @ UDP Hole Punch Server || https://en.wikipedia.org/wiki/UDP_hole_punching
 # */
+# TODO: Find a better way of doing this shit
+
+# Types
 
 # Enums
 
 # Constants
-LOCAL_IP: Final[str] = "127.0.0.1" 
-LOCAL_PORT: Final[int] = int(environ["PORT"])
-BUFFER_SIZE: Final[int] = 1024
+LOCAL_IP: Final[str] = "127.0.0.1"				# Don't touch
+LOCAL_PORT: Final[int] = int(environ["PORT"])	# Can be edited via ENV_VARS
+BUFFER_SIZE: Final[int] = 1024					# Don't touch
 
 # Public Variables
 
 # Private Variables
-# TODO: Find a better way of doing this shit
+# --> Refer to TODO
 _connectedClients: list = []
 _hostingClients: dict = {}
+_UDPResponseCodes: dict = {
+	"CONN_ACKNOWLEDGED": "CONN_ACKNOWLEDGED",
+	"CONN_NOT_REGISTERED": "CONN_NOT_REGISTERED",
+	"CONN_ESTABLISHED": "CONN_ESTABLISHED",
+	"CONN_ALR_ESTABLISHED": "CONN_ALR_ESTABLISHED",
+	"AUTH_ACCESS_TOKEN_INVALID": "AUTH_ACCESS_TOKEN_INVALID",
+	"AUTH_CLIENT_TOKEN_INVALID": "AUTH_CLIENT_TOKEN_INVALID",
+	"SERVER_HEARTBEAT": "SERVER_HEARTBEAT"
+}
 
 # _init()
 def _init() -> None:
@@ -33,59 +48,114 @@ def _init() -> None:
 	UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 	log("Creating UDP socket")
 	
-	# Bind the socket
+	# Heartbeat scheduler
+	schedule.every(2).seconds.do(_sendServerHeartbeatStatus, udpSocket=UDPServerSocket)
+
+	# Bind the socket / Create server
 	UDPServerSocket.bind((LOCAL_IP, LOCAL_PORT))
 	log(f"UDP \"TURN\" Server started on port {LOCAL_PORT}")
 
-	# Keep polling data
+	# Config
+	UDPServerSocket.setblocking(False) # This is gay
+
+	# Poll data and run pending schedules
 	while True:
-		incomingData = UDPServerSocket.recvfrom(BUFFER_SIZE)
+		schedule.run_pending()
+		try:
+			incomingData = UDPServerSocket.recvfrom(BUFFER_SIZE)
+		
+			if incomingData:
+				# Message is byte values, Address is (IP, PORT)
+				incomingMessage: dict = _returnDecodedMessage(incomingData[0])
+				incomingAddr: ConnectionInfo = ConnectionInfo(incomingData[1])
+				log("Received new data")
 
-		if incomingData:
-			# Message is byte values, Address is (IP, PORT)
-			incomingMessage, incomingAddr = loads(incomingData[0].decode('utf-8')), incomingData[1]
+				# Authorization "middleware"
+				try:
+					accessToken: str = incomingMessage["authorization"]
+					decodedToken: dict = verifyAndDecodeJWT(accessToken, environ["SERVER_ACCESS_TOKEN"])["token"]
+					if not validateClientToken(str(decodedToken), environ["SERVER_ACCESS_TOKEN"]):
+						returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["AUTH_CLIENT_TOKEN_INVALID"], "message": "Invalid client token..How did you even get here??"}
+						UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+						continue
 
-			if incomingMessage["connectionType"] == "Registration":
-				if incomingAddr not in _connectedClients:
-					log(f"Registering new client || {incomingAddr[0]}:{incomingAddr[1]}")
-					
-					# Add client to connected clients list and send back a response
-					_connectedClients.append(incomingAddr)
-					UDPServerSocket.sendto(dumps({"message": "Connected", "hostCode": ""}).encode('utf-8'), incomingAddr)
-
-					log("New client has been registered")
+				except Exception as error:
+					returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["AUTH_ACCESS_TOKEN_INVALID"], "message": "Invalid access token"}
+					wrn(f"Error decoding JWT. Possibly user error || {error}")
+					UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
 					continue
+				
 				else:
-					UDPServerSocket.sendto(dumps({"message": "Already connected"}).encode('utf-8'), incomingAddr)
-					continue
-			
-			
-			if incomingMessage["connectionType"] == "Host":
-				# Check for registration
-				if incomingAddr not in _connectedClients:
-					returnData: bytes = returnEncodedMessage({"code": 401, "message": "Not registered with UDP Server"})
-					UDPServerSocket.sendto(returnData, incomingAddr)
-				
-				log("Attempting to create new hosting session for client")
-				newBindCode: str = generateNewBindCode()
+					# Client returned heartbeat
+					if incomingMessage["connectionType"] == "ClientHeartbeat":
+						_connectedClients.append(incomingAddr.returnInfo())
+						continue
+
+					# Client attempting to register
+					if incomingMessage["connectionType"] == "Registration":
+						# Duplicate connection found, should not happen as often but eh
+						if incomingAddr in _connectedClients:
+							returnData: dict = {"type": "SERVER_COMM", "code": "CONN_ALR_ESTABLISHED", "message": "Already connect to TURN Server"}
+							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+							continue
+							
+						# Add connection to currently connected clients
+						_connectedClients.append(incomingAddr.returnInfo())
+						returnData: dict = {"type": "SERVER_COMM", "code": "CONN_ESTABLISHED", "message": "Connection established"}
+						UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+						log("New client added")
+						continue
+					
+					if incomingMessage["connectionType"] == "CreateSession":
+						if incomingAddr.returnInfo() in _connectedClients and _hostingClients.get(incomingAddr) == None:
+							generatedBindCode: str
+							# Generate new join code
+							while True:
+								generatedBindCode = generateNewBindCode()
+								
+								# Check for duplicates
+								if generatedBindCode not in _hostingClients.values():
+									break
+							
+							# Add client to hosting list
+							_hostingClients[incomingAddr.returnInfo()] = generatedBindCode
+							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ACKNOWLEDGED"], "message": "Successfully created a new session", "data": generatedBindCode}
+							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+							continue
 
 
+						returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_NOT_REGISTERED"], "message": "Please register before using the Punchthrough service"}
+						UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+						continue
 
-				returnData: bytes = returnEncodedMessage({"code": 200, "data": newBindCode})
-				_hostingClients[incomingAddr] = newBindCode
-				
+					if incomingMessage["connectionType"] == "JoinSession":
+						pass
 
-			if incomingMessage["connectionType"] == "Bind":
-				bindingRemoteAddr = incomingMessage["remoteBind"]
-				print(bindingRemoteAddr)
+		
+		except Exception as error:
+			# Actual hell
+			pass
+
 
 
 # Public Methods
 
+
 # Private Methods
-def returnEncodedMessage(data: dict) -> bytes:
+def _returnDecodedMessage(data: bytes) -> dict:
+	return loads(data.decode('utf-8'))
+
+def _returnEncodedMessage(data: dict) -> bytes:
 	return dumps(data).encode('utf-8')
 
+def _sendServerHeartbeatStatus(udpSocket) -> None:
+	returnData: dict = {"type": "SERVER_COMM_HEARTBEAT", "code": "SERVER_HEARTBEAT", "message": "Online"}
+	for i in _connectedClients:
+		udpSocket.sendto(_returnEncodedMessage(returnData), i)
+	log(f"Server heartbeat sent to {len(_connectedClients)} clients")
+	_connectedClients.clear()
+	return
+
 # Run
-if __name__ == "__main__":
+if __name__ == "__main__":		
 	_init()
