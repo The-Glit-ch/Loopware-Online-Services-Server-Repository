@@ -37,7 +37,7 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 
 * Net/Live Service
 	- VoIP (TODO)❌
-	- NAT Punchthrough (TODO)❌
+	- UDP Hole Punch (Working) 👨‍💻
 	- Game/App Analytics (TODO)❌
 
 * Other
