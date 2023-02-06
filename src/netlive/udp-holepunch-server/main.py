@@ -22,7 +22,7 @@ load_dotenv(".env/.live-udp-config.env")
 # Enums
 
 # Constants
-LOCAL_IP: Final[str] = "127.0.0.1"				# Don't touch
+LOCAL_IP: Final[str] = "0.0.0.0"				# Don't touch
 LOCAL_PORT: Final[int] = int(environ["PORT"])	# Can be edited via ENV_VARS
 BUFFER_SIZE: Final[int] = 1024					# Don't touch
 
@@ -32,11 +32,15 @@ BUFFER_SIZE: Final[int] = 1024					# Don't touch
 # --> Refer to TODO
 _connectedClients: list = []
 _hostingClients: dict = {}
+_currentSessions: dict = {}
 _UDPResponseCodes: dict = {
 	"CONN_ACKNOWLEDGED": "CONN_ACKNOWLEDGED",
-	"CONN_NOT_REGISTERED": "CONN_NOT_REGISTERED",
 	"CONN_ESTABLISHED": "CONN_ESTABLISHED",
 	"CONN_ALR_ESTABLISHED": "CONN_ALR_ESTABLISHED",
+	"CONN_NOT_REGISTERED": "CONN_NOT_REGISTERED",
+	"CONN_ALR_HOSTING": "CONN_ALR_HOSTING",
+	"CONN_ALR_IN_SESSION": "CONN_ALR_IN_SESSION",
+	"CONN_SESSION_NOT_FOUND": "CONN_SESSION_NOT_FOUND",
 	"AUTH_ACCESS_TOKEN_INVALID": "AUTH_ACCESS_TOKEN_INVALID",
 	"AUTH_CLIENT_TOKEN_INVALID": "AUTH_CLIENT_TOKEN_INVALID",
 	"SERVER_HEARTBEAT": "SERVER_HEARTBEAT"
@@ -106,30 +110,79 @@ def _init() -> None:
 						log("New client added")
 						continue
 					
+					# Client attempting to create a new session
 					if incomingMessage["connectionType"] == "CreateSession":
-						if incomingAddr.returnInfo() in _connectedClients and _hostingClients.get(incomingAddr) == None:
-							generatedBindCode: str
-							# Generate new join code
-							while True:
-								generatedBindCode = generateNewBindCode()
-								
-								# Check for duplicates
-								if generatedBindCode not in _hostingClients.values():
-									break
-							
-							# Add client to hosting list
-							_hostingClients[incomingAddr.returnInfo()] = generatedBindCode
-							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ACKNOWLEDGED"], "message": "Successfully created a new session", "data": generatedBindCode}
+						# Check if remote is registered
+						if incomingAddr.returnInfo() not in _connectedClients:
+							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_NOT_REGISTERED"], "message": "Please register before using the Punchthrough Service"}
 							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
 							continue
+						
+						# Check if remote is already hosting
+						if _hostingClients.get(incomingAddr.returnInfo()) != None:
+							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ALR_HOSTING"], "message": "Already hosting a session. Please destroy your current session in order to create new ones"}
+							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+							continue
+						
+						# Generate new bind code and "create" new session
+						generatedBindCode: str = generateNewBindCode()
+						while True:
+							if generatedBindCode not in _hostingClients.values():
+								break
 
+							generatedBindCode = generateNewBindCode()
+							
+						# Add client to hosting list
+						_hostingClients[incomingAddr.returnInfo()] = generatedBindCode
+						_currentSessions[generatedBindCode] = {"clients": [], "host": incomingAddr}
 
-						returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_NOT_REGISTERED"], "message": "Please register before using the Punchthrough service"}
+						# Response
+						returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ACKNOWLEDGED"], "message": "Successfully created a new session", "data": generatedBindCode}
 						UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
 						continue
 
+					# Client attempting to join a session
 					if incomingMessage["connectionType"] == "JoinSession":
-						pass
+						# Check if remote is registered
+						if incomingAddr.returnInfo() not in _connectedClients:
+							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_NOT_REGISTERED"], "message": "Please register before using the Punchthrough Service"}
+							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+						
+						# Check if remote is hosting
+						if _hostingClients.get(incomingAddr.returnInfo()) != None:
+							returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ALR_HOSTING"], "message": "Already hosting a session. Please destroy your current session in order to join new ones"}
+							UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+						
+						# Check if remote is already in a session
+						# This can lead to performance issues
+						for sessions in _currentSessions.values():
+							if incomingAddr.returnInfo() in sessions["clients"]:
+								returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ALR_IN_SESSION"], "message": "Already in a session. Please destroy your current session in order to join new ones"}
+								UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+								break
+						else:
+							try:
+								# Get join code
+								sessionJoinCode: str = incomingMessage["joinCode"]
+
+								# Check if join code is valid
+								if sessionJoinCode not in _currentSessions.keys():
+									returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_SESSION_NOT_FOUND"], "message": "Session not found"}
+									UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+									continue
+								
+								# Add client to session
+								_currentSessions[sessionJoinCode]["clients"].append(incomingAddr.returnInfo())
+								log("Added client to session")
+								print(_currentSessions)
+
+								returnData: dict = {"type": "SERVER_COMM", "code": _UDPResponseCodes["CONN_ACKNOWLEDGED"], "message": "Successfully join session"}
+								UDPServerSocket.sendto(_returnEncodedMessage(returnData), incomingAddr.returnInfo())
+								continue
+							
+							except Exception as error:
+								log(error)
+								continue
 
 		
 		except Exception as error:
