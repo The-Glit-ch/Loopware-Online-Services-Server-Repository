@@ -17,8 +17,7 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Constants
 const app = express()
-const PORT: string | number = process.env.PORT || 8080
-const AUTH_ENABLED: boolean = (process.env.AUTH_ENABLED == "true") || false
+const PORT: number = Number(process.env.PORT)
 
 // Public Variables
 
@@ -28,7 +27,6 @@ const AUTH_ENABLED: boolean = (process.env.AUTH_ENABLED == "true") || false
 function _init(): void{
 	// Sanity Checks
 	if (_environmentLoadingError != undefined){ wrn(`.ENV file was not successfully loaded | ${_environmentLoadingError.message}`) }
-	if (!AUTH_ENABLED && _environmentLoadingError == undefined){ wrn("Authorization middleware is DISABLED") }
 
 	// Middleware
 	app.use(express.json())
@@ -44,7 +42,7 @@ function _init(): void{
 	const _datastoreRoute = require('./routes/datastore')
 	const _leaderboardRoute = require('./routes/leaderboard')
 	const _streamRoute = require('./routes/stream')
-	if (AUTH_ENABLED){ app.use(_authorizationMiddleware) }
+	app.use(_authorizationMiddleware)
 	app.use("/datastore", _datastoreRoute)
 	app.use("/leaderboard", _leaderboardRoute)
 	app.use("/stream", _streamRoute)
