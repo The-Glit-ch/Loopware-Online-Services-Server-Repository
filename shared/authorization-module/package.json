@@ -1,5 +1,5 @@
 {
-	"name": "authorization-module",
+	"name": "loss-authorization-module",
 	"version": "1.0.0",
 	"description": "Authorization module for all subsystems",
 	"main": "index.js",
@@ -8,7 +8,7 @@
 	},
 	"keywords": [],
 	"author": "https://github.com/The-Glit-ch",
-	"license": "MIT",
+	"license": "GPL-3.0-or-later",
 	"dependencies": {
 		"jsonwebtoken": "^9.0.0"
 	},
