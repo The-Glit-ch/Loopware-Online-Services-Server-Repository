@@ -7,6 +7,8 @@ import { err } from '../../../../shared/logging-module/src/logging_module'
 
 // Enums
 
+// Interface
+
 // Constants
 const router = express.Router()
 const TOKEN_EXP_TIME: string | undefined = process.env.TOKEN_EXP_TIME 

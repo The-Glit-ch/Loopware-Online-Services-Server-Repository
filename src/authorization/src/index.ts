@@ -14,10 +14,11 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Enums
 
+// Interface
+
 // Constants
 const app = express()
-// Fallback in case of anything
-const PORT = process.env.PORT || 8081
+const PORT: number = Number(process.env.PORT)
 
 // Public Variables
 
@@ -25,7 +26,7 @@ const PORT = process.env.PORT || 8081
 
 // _init()
 function _init(): void{
-	// Do a quick sanity check
+	// Sanity Checks
 	if (_environmentLoadingError != undefined){ wrn(`.ENV file was not successfully loaded | ${_environmentLoadingError.message}`) }
 
 	// Enable JSON parsing express middleware

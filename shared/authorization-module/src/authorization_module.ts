@@ -10,6 +10,8 @@ import { sign, SignOptions, verify } from 'jsonwebtoken'
 
 // Enums
 
+// Interface
+
 // Constants
 
 // Public Variables

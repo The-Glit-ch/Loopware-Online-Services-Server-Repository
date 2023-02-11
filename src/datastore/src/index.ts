@@ -15,6 +15,8 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Enums
 
+// Interface
+
 // Constants
 const app = express()
 const PORT: number = Number(process.env.PORT)
@@ -28,16 +30,16 @@ function _init(): void{
 	// Sanity Checks
 	if (_environmentLoadingError != undefined){ wrn(`.ENV file was not successfully loaded | ${_environmentLoadingError.message}`) }
 
-	// Middleware
+	// Enable JSON parsing express middleware
 	app.use(express.json())
 
-	// Logging Middleware
+	// Log all incoming connections to the server
 	app.use((req, _res, next) => {
 		log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
 		next()
 	})
 
-	// Routes
+	// Setup routing
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
 	const _leaderboardRoute = require('./routes/leaderboard')

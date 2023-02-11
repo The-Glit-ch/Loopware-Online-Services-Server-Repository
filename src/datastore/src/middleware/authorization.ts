@@ -4,8 +4,7 @@ import { verifyAndDecodeJWT, validateClientToken } from '../../../../shared/auth
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Authorization Middleware || Middleware module that can be enabled/disabled via the
- * AUTH_ENABLED environment variable. Note: Both the Authorization server environment configuration and Datastore environment configuration
+ * Loopware Online Subsystem @ Authorization Middleware || Both the Authorization server environment configuration and Datastore environment configuration
  * must contain the same SERVER_ACCESS_TOKEN and SERVER_REFRESH_TOKEN values
  */
 

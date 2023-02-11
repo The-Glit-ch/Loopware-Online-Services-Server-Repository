@@ -1,0 +1,32 @@
+# /**
+# * Loopware Online Subsystem @ AuthDB Dockerfile || Simple dockerfile that allows for the creation of
+# * a Redis Cache instance and a MongoDB instance for storing ClientIDs and AccessTokens
+# * TODO: Implement a way of scaling
+# */
+
+services:
+  redisCacheInstance:
+    image: redis:latest
+    container_name: loss-auth-redis-cache
+    ports:
+      - 6379:3620
+    restart: always
+
+  mongoDBInstance:
+    image: mongo:latest
+    container_name: loss-auth-mongodb
+    depends_on:
+      - redisCacheInstance
+    environment:
+      # It is adviced to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=lossAuthMongoDB
+      - MONGO_INITDB_ROOT_PASSWORD=lossAuthMongoDB
+    volumes:
+      - authStorageVolume:/lossauthDB:rw
+    ports:
+      - 27017:3621
+    restart: always
+
+volumes:
+  authStorageVolume:
+    name: loss-auth-mongodb-storage

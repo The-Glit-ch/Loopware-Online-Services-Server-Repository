@@ -10,6 +10,8 @@ import { join } from 'path'
 
 // Enums
 
+// Interface
+
 // Constants
 const loggingLocale: string = 'en-US'
 const loggingDirectory: string = './logs'
