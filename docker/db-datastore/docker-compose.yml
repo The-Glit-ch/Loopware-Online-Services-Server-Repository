@@ -15,7 +15,7 @@ services:
     volumes:
       - datastoreStorageVolume:/lossdatastoreDB:rw
     ports:
-      - 27017:3622
+      - "27017:27017"
     restart: always
     
 volumes:

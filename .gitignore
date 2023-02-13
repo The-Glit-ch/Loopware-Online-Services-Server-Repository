@@ -131,3 +131,6 @@ dist
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Loss Dev Files
+.rest

@@ -1,6 +1,6 @@
 // Imports
 import express from 'express'
-import { verifyAndDecodeJWT, validateClientToken } from '../../../../shared/authorization-module/src/authorization_module'
+import { verifyAndDecodeJWT, validateClientToken } from '../../../../shared/authorization-module/src/authorization_module_old'
 
 // Docstring
 /**

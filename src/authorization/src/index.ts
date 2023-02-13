@@ -3,7 +3,7 @@ import express from 'express';
 import { config } from 'dotenv';
 import { join } from 'path'
 import { log, wrn } from '../../../shared/logging-module/src/logging_module'
-let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.authorization-config.env')}).error
+let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.lossConfig.env')}).error
 
 // Docstring
 /**
@@ -18,7 +18,7 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Constants
 const app = express()
-const PORT: number = Number(process.env.PORT)
+const PORT: number = Number(process.env.AUTH_LISTEN_PORT)
 
 // Public Variables
 
@@ -39,8 +39,10 @@ function _init(): void{
 	})
 
 	// Setup routing
-	const _serverEndpoint = require('./routes/server')
-	app.use("/auth/server", _serverEndpoint)
+	const _authorizationEndpoint = require('./routes/authorization')
+	const _dashboardAccessEndpoint = require('./routes/dashboard')
+	app.use("/auth", _authorizationEndpoint)
+	app.use("/auth/_", _dashboardAccessEndpoint)
 
 	// Start listening
 	app.listen(PORT, () => {

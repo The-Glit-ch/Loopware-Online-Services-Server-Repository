@@ -38,7 +38,9 @@ function _init(): void{
  */
 export function log(...message: Array<string>): void{
 	let logTime: string = new Date().toLocaleDateString(loggingLocale)
-	let formattedMessage: string = `[LOG @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
+	let fullMessage: string = ""
+	message.forEach((value) => {fullMessage = fullMessage + " " + value})
+	let formattedMessage: string = `[LOG @ ${logTime}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -53,7 +55,9 @@ export function log(...message: Array<string>): void{
  */
 export function wrn(...message: Array<string>): void{
 	let logTime: string = new Date().toLocaleDateString(loggingLocale)
-	let formattedMessage: string = `[WRN @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
+	let fullMessage: string = ""
+	message.forEach((value) => {fullMessage = fullMessage + " " + value})
+	let formattedMessage: string = `[WRN @ ${logTime}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -68,7 +72,9 @@ export function wrn(...message: Array<string>): void{
  */
 export function err(...message: Array<string>): void{
 	let logTime: string = new Date().toLocaleDateString(loggingLocale)
-	let formattedMessage: string = `[ERR @ ${logTime}] ${message.toString().replaceAll(",", " ")}`
+	let fullMessage: string = ""
+	message.forEach((value) => {fullMessage = fullMessage + " " + value})
+	let formattedMessage: string = `[ERR @ ${logTime}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
