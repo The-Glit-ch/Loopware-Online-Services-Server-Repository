@@ -9,18 +9,18 @@ services:
   # Token storage
   mongoDBAuthStorage:
     image: mongo:latest
-    container_name: loss-auth-storage-mongo
+    container_name: loss-authorization-storage-mongo
     command: "mongod --port 36200"
     environment:
       # It is adviced to change the default username and password
       - MONGO_INITDB_ROOT_USERNAME=lossAuthMongoDB
       - MONGO_INITDB_ROOT_PASSWORD=lossAuthMongoDB
     volumes:
-      - authDBVolume:/lossAuthDB:rw
+      - authorizationStorageVolume:/lossAuthorizationDB:rw
     ports:
       - "36200:36200"
     restart: always
 
 volumes:
-  authDBVolume:
-    name: loss-auth-storage-volume
+  authorizationStorageVolume:
+    name: loss-authorization-storage-volume

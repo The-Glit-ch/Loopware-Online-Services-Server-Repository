@@ -3,14 +3,12 @@ import express from 'express'
 import { config } from 'dotenv'
 import { join } from 'path'
 import { log, wrn } from '../../../shared/logging-module/src/logging_module'
-let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), "./.env/.datastore-config.env")}).error
+let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.lossConfig.env')}).error
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Datastore Server || A ready to go datastore service that can integrate with
- * existing LOSS Modules. This server provides multiple endpoints for directly reading/writing to a database along with 
- * other endpoints that can handle leader boards, player data, and much more
- * Authorization via JWT can be toggled on and off via the AUTH_ENABLED environment variable
+ * Loopware Online Subsystem @ Datastore Server || A versatile and configurable data storage solution that allows you to read and write user generated data.
+ * Features a standard datastore solution allowing you to interface with a mongodb instance, a leaderboard service, and an online asset streaming service
  */
 
 // Enums
@@ -19,7 +17,9 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Constants
 const app = express()
-const PORT: number = Number(process.env.PORT)
+
+// ENV Constants
+const PORT: number = Number(process.env.DS_LISTEN_PORT)
 
 // Public Variables
 
@@ -42,12 +42,8 @@ function _init(): void{
 	// Setup routing
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
-	const _leaderboardRoute = require('./routes/leaderboard')
-	const _streamRoute = require('./routes/stream')
 	app.use(_authorizationMiddleware)
-	app.use("/datastore", _datastoreRoute)
-	app.use("/leaderboard", _leaderboardRoute)
-	app.use("/stream", _streamRoute)
+	app.use("/datastore/api/v1/", _datastoreRoute)
 
 	// Start listening
 	app.listen(PORT, () => {

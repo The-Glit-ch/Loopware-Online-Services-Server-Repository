@@ -18,6 +18,8 @@ let _environmentLoadingError: Error | undefined = config({path: join(process.cwd
 
 // Constants
 const app = express()
+
+// ENV Constants
 const PORT: number = Number(process.env.AUTH_LISTEN_PORT)
 
 // Public Variables
@@ -41,8 +43,10 @@ function _init(): void{
 	// Setup routing
 	const _authorizationEndpoint = require('./routes/authorization')
 	const _dashboardAccessEndpoint = require('./routes/dashboard')
-	app.use("/auth", _authorizationEndpoint)
-	app.use("/auth/_", _dashboardAccessEndpoint)
+	const _authorizationModuleAccessEndpoint = require('./routes/authmodule')
+	app.use("/authorization/api/v1/", _authorizationEndpoint)
+	app.use("/authorization/_/dashboard/api/v1/", _dashboardAccessEndpoint)
+	app.use("/authorization/_/authmodule/api/v1/", _authorizationModuleAccessEndpoint)
 
 	// Start listening
 	app.listen(PORT, () => {

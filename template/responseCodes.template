@@ -1,0 +1,11 @@
+-- 200
+200 - OK  || Data returned
+201 - OK  || Data not returned, link to URI
+
+-- 400
+400 - Bad Request 	|| Bad databody/invalid data received
+401 - Unauthorized 	|| Auth token not received
+403 - Forbidden		|| Client cannot access this
+
+-- 500
+500 - Server Error || Server Error

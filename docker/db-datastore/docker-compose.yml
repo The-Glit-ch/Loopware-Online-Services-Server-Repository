@@ -7,15 +7,16 @@
 services:
   mongoDBInstance:
     image: mongo:latest
-    container_name: loss-datastore-mongodb
+    container_name: loss-datastore-storage-mongodb
+    command: "mongod --port 36201"
     environment:
       # It is adviced to change the default username and password
       - MONGO_INITDB_ROOT_USERNAME=lossDatastoreMongoDB
       - MONGO_INITDB_ROOT_PASSWORD=lossDatastoreMongoDB
     volumes:
-      - datastoreStorageVolume:/lossdatastoreDB:rw
+      - datastoreStorageVolume:/lossDatastoreDB:rw
     ports:
-      - "27017:27017"
+      - "36201:36201"
     restart: always
     
 volumes:

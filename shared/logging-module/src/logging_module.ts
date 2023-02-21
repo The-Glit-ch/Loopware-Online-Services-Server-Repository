@@ -37,10 +37,11 @@ function _init(): void{
  * @param { Array<string> } message - Message to log
  */
 export function log(...message: Array<string>): void{
-	let logTime: string = new Date().toLocaleDateString(loggingLocale)
+	let logDate: string = new Date().toLocaleDateString(loggingLocale)
+	let logTime: string = new Date().toLocaleTimeString(loggingLocale)
 	let fullMessage: string = ""
 	message.forEach((value) => {fullMessage = fullMessage + " " + value})
-	let formattedMessage: string = `[LOG @ ${logTime}] ${fullMessage}`
+	let formattedMessage: string = `[LOG @ ${logDate}-${logTime} | ${_getCallerFile()}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -54,10 +55,11 @@ export function log(...message: Array<string>): void{
  * @param { Array<string> } message - Message to log
  */
 export function wrn(...message: Array<string>): void{
-	let logTime: string = new Date().toLocaleDateString(loggingLocale)
+	let logDate: string = new Date().toLocaleDateString(loggingLocale)
+	let logTime: string = new Date().toLocaleTimeString(loggingLocale)
 	let fullMessage: string = ""
 	message.forEach((value) => {fullMessage = fullMessage + " " + value})
-	let formattedMessage: string = `[WRN @ ${logTime}] ${fullMessage}`
+	let formattedMessage: string = `[WRN @ ${logDate}-${logTime} | ${_getCallerFile()}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -71,10 +73,11 @@ export function wrn(...message: Array<string>): void{
  * @param { Array<string> } message - Message to log
  */
 export function err(...message: Array<string>): void{
-	let logTime: string = new Date().toLocaleDateString(loggingLocale)
+	let logDate: string = new Date().toLocaleDateString(loggingLocale)
+	let logTime: string = new Date().toLocaleTimeString(loggingLocale)
 	let fullMessage: string = ""
 	message.forEach((value) => {fullMessage = fullMessage + " " + value})
-	let formattedMessage: string = `[ERR @ ${logTime}] ${fullMessage}`
+	let formattedMessage: string = `[ERR @ ${logDate}-${logTime} | ${_getCallerFile()}] ${fullMessage}`
 
 	console.log(formattedMessage)
 	_writeToLogFile(formattedMessage)
@@ -112,6 +115,33 @@ function _writeToLogFile(data: string): Promise<void>{
 			if (err){ reject(err) }
 		})
 	})
+}
+
+/**
+ * I don't even know
+ * @returns string
+ */
+function _getCallerFile(): String{
+	// Black magic fuckery like holy shit
+	// https://www.appsloveworld.com/nodejs/100/8/nodejs-get-filename-of-caller-function
+	// https://stackoverflow.com/questions/14201475/node-js-getting-current-filename
+
+	// Setup
+    let error: Error = new Error()
+	let stack: any
+
+	// Prepare the stack
+    Error.prepareStackTrace = (_, stack) => stack;
+
+	// ????
+	stack = error.stack
+	Error.prepareStackTrace = undefined;
+
+	// Save the file path
+	let rawFileString: string = String(stack[2].getFileName())
+	let formattedFileString: string = rawFileString.slice(rawFileString.lastIndexOf(require('path').sep)+1, rawFileString.length) // ???????
+
+	return formattedFileString
 }
 
 // Run
