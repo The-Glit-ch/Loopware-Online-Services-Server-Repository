@@ -12,15 +12,13 @@ import { err, log, wrn } from '../../../../shared/logging-module/src/logging_mod
 // Enums
 
 // Interface
-interface genericFetchQuery {
+interface databaseInteraction{
 	collectionName: string,
-	fetchQuery: object,
-	fetchProjection: object
-}
-
-interface genericDatabaseInteraction{
-	collectionName: string,
-	data: object
+	fetchQuery: {
+		query: object,
+		projection: object
+	},
+	writeData: object
 }
 
 // Constants
@@ -46,9 +44,10 @@ router.post("/new-collection", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newCollectionData: genericDatabaseInteraction = {
+	let newCollectionData: databaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
-		data: incomingData.data
+		fetchQuery: {query: {}, projection: {}},
+		writeData: incomingData.writeData
 	}
 
 	// Null checks
@@ -75,14 +74,14 @@ router.post("/new-collection", (req, res) => {
 				if (!newCollection){ return; }
 
 				// No optional data to write
-				if (!newCollectionData.data){
+				if (!newCollectionData.writeData){
 					log(`Successfully created collection \"${newCollection.collectionName}\"`)
 					res.status(200).json({code: 200, message: "Success"})
 					return;
 				}
 
 				// There is optional data to write
-				newCollection.insertOne(newCollectionData.data)
+				newCollection.insertOne(newCollectionData.writeData)
 					.catch((error) => {
 						err(`Database error while writing data to [${newCollection.collectionName}@${datastoreStorageDatabase.databaseName}] | ${error}`)
 						res.status(409).json({code: 409, message: "Collection successfully made | Error writing data"})
@@ -111,13 +110,14 @@ router.post("/write-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let writeData: genericDatabaseInteraction = {
+	let newWriteData: databaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
-		data: incomingData.data
+		fetchQuery: {query: {}, projection: {}},
+		writeData: incomingData.writeData
 	}
 
 	// Null checks
-	if (_objectNullCheck(writeData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (_objectNullCheck(newWriteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -125,10 +125,10 @@ router.post("/write-data", (req, res) => {
 	// Try to write data to collection
 	try{
 		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
-		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(writeData.collectionName)
+		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(newWriteData.collectionName)
 
 		// Write data
-		datastoreStorageCollection.insertOne(writeData.data)
+		datastoreStorageCollection.insertOne(newWriteData.writeData)
 			.catch((error) => {
 				err(`Database error while writing data to [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({code: 500, message: "Database error"})
@@ -161,14 +161,14 @@ router.get("/fetch-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let fetchData: genericFetchQuery = {
+	let newFetchData: databaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
-		fetchQuery: incomingData.fetchQuery,
-		fetchProjection: incomingData.fetchProjection
+		fetchQuery: {query: incomingData.fetchQuery.query, projection: incomingData.fetchQuery.projection},
+		writeData: {}
 	}
 
 	// Null checks
-	if(_objectNullCheck(fetchData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if(_objectNullCheck(newFetchData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -176,10 +176,10 @@ router.get("/fetch-data", (req, res) => {
 	// Attempt to fetch data from collection
 	try{
 		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
-		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(fetchData.collectionName)
+		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(newFetchData.collectionName)
 
 		// Fetch data
-		datastoreStorageCollection.findOne(fetchData.fetchQuery, {projection: fetchData.fetchProjection})
+		datastoreStorageCollection.findOne(newFetchData.fetchQuery.query, {projection: newFetchData.fetchQuery.projection})
 			.catch((error) => {
 				err(`Database error while fetching data from [Mongo@${datastoreStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({code: 500, message: "Database error"})
@@ -209,18 +209,14 @@ router.patch("/update-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 	
 	// Store data
-	let updateData: genericDatabaseInteraction = {
+	let newUpdateData: databaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
-		data: incomingData.data
-	}
-	let updateQuery: genericFetchQuery = {
-		collectionName: "",
-		fetchQuery: incomingData.fetchQuery,
-		fetchProjection: {}
+		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
+		writeData: incomingData.writeData
 	}
 
 	// Null checks
-	if (_objectNullCheck(updateData) || _objectNullCheck(updateQuery)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (_objectNullCheck(newUpdateData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -228,16 +224,17 @@ router.patch("/update-data", (req, res) => {
 	// Try to update data in collection
 	try{
 		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
-		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(updateData.collectionName)
+		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(newUpdateData.collectionName)
 
 		// Update data
-		datastoreStorageCollection.updateOne(updateQuery.fetchQuery, {"$set": updateData.data})
+		datastoreStorageCollection.updateOne(newUpdateData.fetchQuery.query, {"$set": newUpdateData.writeData})
 			.catch((error) => {
 				err(`Database error while updating data in [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({code: 500, message: "Database error"})
 				return
 			})
-			.then(() => {
+			.then((result) => {
+				if (!result){ res.status(404).json({code: 404, message: "Document not found | No changes were made"}); return; }
 				log(`Successfully updated data in [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}]`)
 				res.status(200).json({code: 200, message: "Success"})
 				return
@@ -264,19 +261,14 @@ router.put("/replace-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 	
 	// Store data
-	let replacementData: genericDatabaseInteraction = {
+	let newReplacementData: databaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
-		data: incomingData.data
-	}
-
-	let replacementQuery: genericFetchQuery = {
-		collectionName: "",
-		fetchQuery: incomingData.fetchQuery,
-		fetchProjection: {}
+		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
+		writeData: incomingData.writeData
 	}
 
 	// Null checks
-	if (_objectNullCheck(replacementData) || _objectNullCheck(replacementQuery)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (_objectNullCheck(newReplacementData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -284,16 +276,17 @@ router.put("/replace-data", (req, res) => {
 	// Try to replace data in collection
 	try{
 		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
-		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(replacementData.collectionName)
+		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(newReplacementData.collectionName)
 
 		// Replace data
-		datastoreStorageCollection.replaceOne(replacementQuery.fetchQuery, replacementData.data)
+		datastoreStorageCollection.replaceOne(newReplacementData.fetchQuery.query, newReplacementData.writeData)
 			.catch((error) => {
 				err(`Database error while updating data in [Mongo@${datastoreStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({code: 500, message: "Database error"})
 				return
 			})
-			.then(() => {
+			.then((result) => {
+				if (!result){ res.status(404).json({code: 404, message: "Document not found | No changes were made"}); return; }
 				log(`Successfully updated data in [Mongo@${datastoreStorageDatabase.databaseName}]`)
 				res.status(200).json({code: 200, message: "Success"})
 				return
@@ -306,6 +299,100 @@ router.put("/replace-data", (req, res) => {
 	}
 })
 
+router.delete("/delete-data", (req, res) => {
+	// Retrieve data
+	let incomingData: object | any = req.body
+	let userData: object | any = req.res?.locals.authorizedUserData
+
+	// Check if we received an empty body
+	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
+
+	// Store data
+	let newDeleteData: databaseInteraction = {
+		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
+		writeData: {}
+	}
+
+	// Null checks
+	if (_objectNullCheck(newDeleteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+
+	// Check connection to database
+	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
+
+	// Attempt to delete data from collection
+	try{
+		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
+		let datastoreStorageCollection: Collection = datastoreStorageDatabase.collection(newDeleteData.collectionName)
+
+		datastoreStorageCollection.deleteOne(newDeleteData.fetchQuery.query)
+			.catch((error) => {
+				err(`Database error while trying to delete data from [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}] | ${error}`)
+				res.status(500).json({code: 500, message: "Database error"})
+				return
+			})
+			.then((result) => {
+				if (!result){ res.status(404).json({code: 404, message: "Document not found | No changes were made"}); return; }
+				log(`Successfully deleted data from [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}]`)
+				res.status(200).json({code: 200, message: "Success"})
+				return
+			})
+
+	}catch (error){
+		err(`Fatal error occurred on "/delete-data" endpoint | ${error}`)
+		res.status(500).json({code: 500, message: "Fatal error"})
+		return
+	}
+})
+
+router.delete("/delete-data-bulk", (req, res) => {
+	res.status(501).json({code: 501, message: "TBI | Please use /delete-data instead"})
+	return
+})
+
+router.delete("/delete-collection", (req, res) => {
+	// Retrieve data
+	let incomingData: object | any = req.body
+	let userData: object | any = req.res?.locals.authorizedUserData
+
+	// Check if we received an empty body
+	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
+
+	// Store data
+	let newDeleteCollectionData: databaseInteraction = {
+		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		fetchQuery: {query: {}, projection: {}},
+		writeData: {}
+	}
+
+	// Null checks
+	if (_objectNullCheck(newDeleteCollectionData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+
+	// Check connection to database
+	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
+
+	// Try to delete collection
+	try{
+		let datastoreStorageDatabase: Db = datastoreStorageAgent.db()
+
+		datastoreStorageDatabase.dropCollection(newDeleteCollectionData.collectionName)
+			.catch((error) => {
+				err(`Database error while deleting collection \"${newDeleteCollectionData.collectionName}\" from \"${datastoreStorageDatabase.databaseName}\" | ${error}`)
+				res.status(500).json({code: 500, message: "Database error"})
+				return
+			})
+			.then(() => {
+				log(`Successfully deleted collection \"${newDeleteCollectionData.collectionName}\" from \"${datastoreStorageDatabase.databaseName}\"`)
+				res.status(200).json({code: 200, message: "Success"})
+				return
+			})
+
+	}catch (error){
+		err(`Fatal error occurred on "/delete-collection" endpoint | ${error}`)
+		res.status(500).json({code: 500, message: "Fatal error"})
+		return
+	}
+})
 
 // Private Methods
 /**
@@ -338,6 +425,5 @@ datastoreStorageAgent.on('serverHeartbeatFailed', () => {
 	if(_connectedToDatastoreStorageDB == true){ _retryConnection() }
 	_connectedToDatastoreStorageDB = false
 })
-
 
 module.exports = router

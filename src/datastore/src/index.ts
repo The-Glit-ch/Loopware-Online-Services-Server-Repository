@@ -42,8 +42,10 @@ function _init(): void{
 	// Setup routing
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
+	const _streamingRoute = require('./routes/streaming')
 	app.use(_authorizationMiddleware)
 	app.use("/datastore/api/v1/", _datastoreRoute)
+	app.use("/streaming/api/v1/", _streamingRoute)
 
 	// Start listening
 	app.listen(PORT, () => {
