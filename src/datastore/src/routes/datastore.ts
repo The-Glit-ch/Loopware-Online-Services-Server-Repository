@@ -74,7 +74,7 @@ router.post("/new-collection", (req, res) => {
 				if (!newCollection){ return; }
 
 				// No optional data to write
-				if (!newCollectionData.writeData){
+				if (Object.keys(newCollectionData.writeData).length === 0){
 					log(`Successfully created collection \"${newCollection.collectionName}\"`)
 					res.status(200).json({code: 200, message: "Success"})
 					return;
