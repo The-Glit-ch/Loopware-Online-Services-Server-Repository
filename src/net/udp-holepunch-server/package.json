@@ -1,0 +1,19 @@
+{
+	"name": "udp-holepunch-server",
+	"version": "1.0.0",
+	"description": "Provides a TURN server for UDP Holepunching",
+	"main": "index.js",
+	"scripts": {
+		"build": "echo \"Building \"LOSS @ UDP Holepunch Server\"...\" && tsc"
+	},
+	"keywords": [],
+	"author": "https://github.com/The-Glit-ch",
+	"license": "GPL-3.0-or-later",
+	"devDependencies": {
+		"@types/node": "^18.14.1",
+		"dotenv": "^16.0.3"
+	},
+	"dependencies": {
+		"redis": "^4.6.4"
+	}
+}
