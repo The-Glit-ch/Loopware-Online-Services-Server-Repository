@@ -35,6 +35,7 @@ function _init(): void{
 /**
  * Logs a message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
+ * @returns { void }
  */
 export function log(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -53,6 +54,7 @@ export function log(...message: Array<string>): void{
 /**
  * Logs a warning message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
+ * @returns { void }
  */
 export function wrn(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -71,6 +73,7 @@ export function wrn(...message: Array<string>): void{
 /**
  * Logs an error message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
+ * @returns { void }
  */
 export function err(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -119,9 +122,9 @@ function _writeToLogFile(data: string): Promise<void>{
 
 /**
  * I don't even know
- * @returns string
+ * @returns { string } File name
  */
-function _getCallerFile(): String{
+function _getCallerFile(): string{
 	// Black magic fuckery like holy shit
 	// https://www.appsloveworld.com/nodejs/100/8/nodejs-get-filename-of-caller-function
 	// https://stackoverflow.com/questions/14201475/node-js-getting-current-filename

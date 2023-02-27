@@ -33,6 +33,9 @@ const datastoreStorageAgent: MongoClient = new MongoClient(String(process.env.DS
 var _connectedToDatastoreStorageDB: boolean = true
 
 // _init()
+async function _init(): Promise<any> {
+	// console.log()
+}
 
 // Public Methods | In Order of CRUD(Create, Read, Update, Destroy)
 router.post("/new-collection", (req, res) => {

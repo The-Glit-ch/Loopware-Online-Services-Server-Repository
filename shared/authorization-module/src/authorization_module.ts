@@ -64,10 +64,11 @@ export function validateAccessToken(accessToken: string, clientToken: string): P
 	return new Promise((resolve, reject) => {
 		axios.get(AUTHORIZATION_URL + "/validate-access-token", {data: {tokens: {accessToken: accessToken, clientToken: clientToken}}, headers: {"Content-Type": "application/json"}})
 			.catch((error) => {
-				reject(error)
+				reject(error.response.data)
 			})
 			.then((returnData: any) => {
-				resolve(returnData)
+				if (!returnData){ return; }
+				resolve(returnData.data.data)
 			})
 	})
 }

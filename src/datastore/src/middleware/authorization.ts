@@ -34,7 +34,7 @@ router.use((req, res, next) => {
 	// Check access token
 	validateAccessToken(String(accessToken), String(clientToken))
 		.catch((error) => {
-			res.status(error.response.status).json({code: error.response.status, message: error.response.data.message})
+			res.status(error.code).json({code: error.code, message: error.message})
 			return
 		})
 		.then((returnData) => {
@@ -45,10 +45,10 @@ router.use((req, res, next) => {
 			 */
 			
 			// Store user data
-			res.locals.authorizedUserData = returnData.data.data
+			res.locals.authorizedUserData = returnData
 			
 			// Next || Data.Data.Data
-			if (returnData.data.data.isValid === true){ next('route') }
+			if (returnData.isValid === true){ next('route') }
 		})
 })
 

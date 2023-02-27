@@ -87,6 +87,7 @@ router.get("/validate-access-token", (req, res) => {
 						return
 					})
 					.then((_decodedToken) => {
+						if (!_decodedToken){ return; }
 						res.status(200).json({code: 200, message: "Success", data: {isValid: true, appName: appName}})
 						return
 					})
