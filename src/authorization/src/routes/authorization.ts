@@ -62,8 +62,8 @@ router.post("/register", (req, res) => {
 	try{
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-		let clientTokenStorageFetchQuery: Object = {clientToken: clientToken}
-		let clientTokenStorageFetchQueryOptions: Object = {projection: {serverAccessToken: 1, serverRefreshToken: 1, appName: 1}}
+		let clientTokenStorageFetchQuery: object = {clientToken: clientToken}
+		let clientTokenStorageFetchQueryOptions: object = {projection: {serverAccessToken: 1, serverRefreshToken: 1, appName: 1}}
 		
 		// Begin search
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
@@ -88,7 +88,7 @@ router.post("/register", (req, res) => {
 				let serverAccessToken: string = foundClientToken.serverAccessToken
 				let serverRefreshToken: string = foundClientToken.serverRefreshToken
 				let appName: string = foundClientToken.appName
-				let payload: Object = {clientToken: clientToken, appName: appName}
+				let payload: object = {clientToken: clientToken, appName: appName}
 
 				// Generate access token
 				generateJWT(payload, serverAccessToken, {expiresIn: TOKEN_EXP_TIME})
@@ -150,8 +150,8 @@ router.post("/refresh", (req, res) => {
 	try{
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-		let clientTokenStorageFetchQuery: Object = {clientToken: clientToken}
-		let clientTokenStorageFetchQueryOptions: Object = {projection: {serverAccessToken: 1, clientToken: 1, appName: 1}}
+		let clientTokenStorageFetchQuery: object = {clientToken: clientToken}
+		let clientTokenStorageFetchQueryOptions: object = {projection: {serverAccessToken: 1, clientToken: 1, appName: 1}}
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
 			.catch((error) => {
@@ -173,8 +173,8 @@ router.post("/refresh", (req, res) => {
 				try{
 					let liveTokenStorageDatabase: Db = liveTokenStorageAgent.db()
 					let liveTokenStorageCollection: Collection = liveTokenStorageDatabase.collection(LIVE_TOKEN_STORAGE_COLLECTION_NAME)
-					let liveTokenStorageFetchQuery: Object = {refreshToken: refreshToken}
-					let liveTokenStorageFetchQueryOptions: Object = {refreshToken: 1}
+					let liveTokenStorageFetchQuery: object = {refreshToken: refreshToken}
+					let liveTokenStorageFetchQueryOptions: object = {refreshToken: 1}
 			
 					liveTokenStorageCollection.findOne(liveTokenStorageFetchQuery, liveTokenStorageFetchQueryOptions)
 						.catch((error) => {
@@ -194,7 +194,7 @@ router.post("/refresh", (req, res) => {
 							 */
 							
 							// Set payload
-							let payload: Object = {clientToken: storedClientToken, appName: storedAppName}
+							let payload: object = {clientToken: storedClientToken, appName: storedAppName}
 							
 							// Generate a new accessToken
 							generateJWT(payload, storedServerAccessToken, {expiresIn: TOKEN_EXP_TIME})
@@ -243,7 +243,7 @@ router.post("/logout", (req, res) => {
 	try{
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-		let clientTokenStorageFetchQuery: Object = {clientToken: clientToken}
+		let clientTokenStorageFetchQuery: object = {clientToken: clientToken}
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery)
 			.catch((error) => {
@@ -260,7 +260,7 @@ router.post("/logout", (req, res) => {
 				try{
 					let liveTokenStorageDatabase: Db = liveTokenStorageAgent.db()
 					let liveTokenStorageCollection: Collection = liveTokenStorageDatabase.collection(LIVE_TOKEN_STORAGE_COLLECTION_NAME)
-					let liveTokenStorageFetchQuery: Object = {refreshToken: refreshToken}
+					let liveTokenStorageFetchQuery: object = {refreshToken: refreshToken}
 
 					liveTokenStorageCollection.findOne(liveTokenStorageFetchQuery)
 						.catch((error) => {

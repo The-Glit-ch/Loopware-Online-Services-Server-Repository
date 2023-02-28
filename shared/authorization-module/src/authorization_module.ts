@@ -11,7 +11,7 @@ import { sign, SignOptions, verify } from 'jsonwebtoken'
 // Enums
 
 // Interface
-export interface newClientIDData {
+export interface NewClientIDData {
 	clientToken: string,
 	serverAccessToken: string,
 	serverRefreshToken: string,
@@ -24,7 +24,7 @@ const AUTHORIZATION_URL: string = "http://127.0.0.1:36210/authorization/_/authmo
 // ENV Constants
 
 // Public Variables
-export function generateNewClientID(tokenSize: number = 64): newClientIDData {
+export function generateNewClientID(tokenSize: number = 64): NewClientIDData {
 	// Generate client token
 	let clientID: string = randomBytes(tokenSize).toString('base64')
 

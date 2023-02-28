@@ -12,7 +12,7 @@ import { err, log, wrn } from '../../../../shared/logging-module/src/logging_mod
 // Enums
 
 // Interface
-interface databaseInteraction{
+interface DatabaseInteraction{
 	collectionName: string,
 	fetchQuery: {
 		query: object,
@@ -47,7 +47,7 @@ router.post("/new-collection", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newCollectionData: databaseInteraction = {
+	let newCollectionData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: incomingData.writeData
@@ -113,7 +113,7 @@ router.post("/write-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newWriteData: databaseInteraction = {
+	let newWriteData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: incomingData.writeData
@@ -164,7 +164,7 @@ router.get("/fetch-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newFetchData: databaseInteraction = {
+	let newFetchData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: incomingData.fetchQuery.projection},
 		writeData: {}
@@ -212,7 +212,7 @@ router.patch("/update-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 	
 	// Store data
-	let newUpdateData: databaseInteraction = {
+	let newUpdateData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: incomingData.writeData
@@ -264,7 +264,7 @@ router.put("/replace-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 	
 	// Store data
-	let newReplacementData: databaseInteraction = {
+	let newReplacementData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: incomingData.writeData
@@ -311,7 +311,7 @@ router.delete("/delete-data", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newDeleteData: databaseInteraction = {
+	let newDeleteData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: {}
@@ -362,7 +362,7 @@ router.delete("/delete-collection", (req, res) => {
 	if (Object.keys(incomingData).length === 0){ res.status(400).json({code: 400, message: "Empty body"}); return; }
 
 	// Store data
-	let newDeleteCollectionData: databaseInteraction = {
+	let newDeleteCollectionData: DatabaseInteraction = {
 		collectionName: `${userData.appName}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: {}

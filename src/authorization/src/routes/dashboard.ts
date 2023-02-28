@@ -1,7 +1,7 @@
 // Imports
 import express from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
-import { generateNewClientID, newClientIDData } from '../../../../shared/authorization-module/src/authorization_module'
+import { generateNewClientID, NewClientIDData } from '../../../../shared/authorization-module/src/authorization_module'
 import { log, wrn, err } from '../../../../shared/logging-module/src/logging_module'
 
 // Docstring
@@ -62,7 +62,7 @@ router.post("/new-client", (req, res, next) => {
 	if (appName == undefined || appName == null){ res.status(400).json({code: 400, message: "Bad request"}); return; }
 
 	// Generated new client ID
-	let newToken: newClientIDData = generateNewClientID()
+	let newToken: NewClientIDData = generateNewClientID()
 
 	// Check connection
 	if (!_connectedToClientTokenStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }

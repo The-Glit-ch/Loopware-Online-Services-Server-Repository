@@ -62,8 +62,8 @@ router.get("/validate-access-token", (req, res) => {
 	try{
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-		let clientTokenStorageFetchQuery: Object = {clientToken: clientToken}
-		let clientTokenStorageFetchQueryOptions: Object = {projection: {serverAccessToken: 1, appName: 1}}
+		let clientTokenStorageFetchQuery: object = {clientToken: clientToken}
+		let clientTokenStorageFetchQueryOptions: object = {projection: {serverAccessToken: 1, appName: 1}}
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
 			.catch((error) => {
