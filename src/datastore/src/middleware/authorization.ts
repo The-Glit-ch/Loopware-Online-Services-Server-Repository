@@ -45,7 +45,7 @@ router.use((req, res, next) => {
 			 */
 			
 			// Store user data
-			res.locals.authorizedUserData = returnData
+			res.locals.authorizedUserData = {clientToken: clientToken, appName: returnData.appName}
 			
 			// Next || Data.Data.Data
 			if (returnData.isValid === true){ next('route') }

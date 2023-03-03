@@ -48,7 +48,7 @@ router.post("/new-collection", (req, res) => {
 
 	// Store data
 	let newCollectionData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: incomingData.writeData
 	}
@@ -114,7 +114,7 @@ router.post("/write-data", (req, res) => {
 
 	// Store data
 	let newWriteData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: incomingData.writeData
 	}
@@ -165,7 +165,7 @@ router.get("/fetch-data", (req, res) => {
 
 	// Store data
 	let newFetchData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: incomingData.fetchQuery.projection},
 		writeData: {}
 	}
@@ -213,7 +213,7 @@ router.patch("/update-data", (req, res) => {
 	
 	// Store data
 	let newUpdateData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: incomingData.writeData
 	}
@@ -265,7 +265,7 @@ router.put("/replace-data", (req, res) => {
 	
 	// Store data
 	let newReplacementData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: incomingData.writeData
 	}
@@ -312,7 +312,7 @@ router.delete("/delete-data", (req, res) => {
 
 	// Store data
 	let newDeleteData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: incomingData.fetchQuery.query, projection: {}},
 		writeData: {}
 	}
@@ -363,7 +363,7 @@ router.delete("/delete-collection", (req, res) => {
 
 	// Store data
 	let newDeleteCollectionData: DatabaseInteraction = {
-		collectionName: `${userData.appName}-${incomingData.collectionName}`,
+		collectionName: `${userData.clientToken}-${incomingData.collectionName}`,
 		fetchQuery: {query: {}, projection: {}},
 		writeData: {}
 	}
