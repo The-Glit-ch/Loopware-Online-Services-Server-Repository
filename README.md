@@ -31,13 +31,13 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 * Datastore Service
 	- Datastore (DONE)✅
 
-	- Leaderboard (Refactor) ⚠
+	- Leaderboard (WORKING) 👨‍💻
 
 	- Asset Streaming (DONE) ✅
 
 * Net/Live Service
 	- VoIP (TODO)❌
-	- UDP Hole Punch (Working) 👨‍💻
+	- UDP Hole Punch (DONE) ✅
 	- Game/App Analytics (TODO)❌
 
 * Other
