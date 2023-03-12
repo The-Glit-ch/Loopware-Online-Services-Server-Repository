@@ -1,6 +1,7 @@
 // Imports
 import express from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
+import { objectNullCheck } from '../../../../shared/general-utility-module/src/general_utility_module'
 import { err, log, wrn } from '../../../../shared/logging-module/src/logging_module'
 
 // Docstring
@@ -12,7 +13,7 @@ import { err, log, wrn } from '../../../../shared/logging-module/src/logging_mod
 // Enums
 
 // Interface
-interface DatabaseInteraction{
+interface DatabaseInteraction {
 	collectionName: string,
 	fetchQuery: {
 		query: object,
@@ -34,7 +35,15 @@ var _connectedToDatastoreStorageDB: boolean = true
 
 // _init()
 async function _init(): Promise<any> {
-	// console.log()
+	// Connect to Datastore Storage
+	try {
+		await datastoreStorageAgent.connect()
+		log(`Connection to Mongo@DatastoreStorage was successful`)
+		_connectedToDatastoreStorageDB = true
+	}catch (error){
+		wrn(`Connection to Mongo@DatastoreStorage was unsuccessful | ${error}`)
+		_connectedToDatastoreStorageDB= false
+	}
 }
 
 // Public Methods | In Order of CRUD(Create, Read, Update, Destroy)
@@ -54,7 +63,7 @@ router.post("/new-collection", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newCollectionData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newCollectionData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -80,7 +89,7 @@ router.post("/new-collection", (req, res) => {
 				if (Object.keys(newCollectionData.writeData).length === 0){
 					log(`Successfully created collection \"${newCollection.collectionName}\"`)
 					res.status(200).json({code: 200, message: "Success"})
-					return;
+					return
 				}
 
 				// There is optional data to write
@@ -97,7 +106,7 @@ router.post("/new-collection", (req, res) => {
 					})
 			})
 	}catch (error){
-		err(`Fatal error occurred on "/create-new-collection" endpoint | ${error}`)
+		err(`Fatal error occurred on "/new-collection" endpoint | ${error}`)
 		res.status(500).json({code: 500, message: "Fatal error"})
 		return
 	}
@@ -120,7 +129,7 @@ router.post("/write-data", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newWriteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newWriteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -171,7 +180,7 @@ router.get("/fetch-data", (req, res) => {
 	}
 
 	// Null checks
-	if(_objectNullCheck(newFetchData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if(objectNullCheck(newFetchData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -219,7 +228,7 @@ router.patch("/update-data", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newUpdateData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newUpdateData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -271,7 +280,7 @@ router.put("/replace-data", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newReplacementData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newReplacementData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -318,7 +327,7 @@ router.delete("/delete-data", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newDeleteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newDeleteData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -369,7 +378,7 @@ router.delete("/delete-collection", (req, res) => {
 	}
 
 	// Null checks
-	if (_objectNullCheck(newDeleteCollectionData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
+	if (objectNullCheck(newDeleteCollectionData)){ res.status(400).json({code: 400, message: "Invalid body"}); return; }
 
 	// Check connection to database
 	if (!_connectedToDatastoreStorageDB){ res.status(500).json({code: 500, message: "Database Offline"}); return; }
@@ -398,20 +407,6 @@ router.delete("/delete-collection", (req, res) => {
 })
 
 // Private Methods
-/**
- * Checks if an object has an undefined key or value. Returns `true`
- * if `undefined` is found
- * @param { object } object - The object to check
- * @returns boolean
- */
-function _objectNullCheck(object: object): boolean{
-	Object.entries(object).forEach(([key, value]) => {
-		if (key == undefined || value == undefined){ return true }
-	})
-	
-	return false
-}
-
 function _retryConnection(): void{
 	let count: number = 0
 	let interval: NodeJS.Timer = setInterval(async () => { log(`Retrying...(${count})`); count++; await datastoreStorageAgent.connect(); }, 2000)
@@ -429,4 +424,5 @@ datastoreStorageAgent.on('serverHeartbeatFailed', () => {
 	_connectedToDatastoreStorageDB = false
 })
 
+_init()
 module.exports = router

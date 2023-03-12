@@ -1,7 +1,9 @@
 // Imports
 import express from 'express'
+import { createServer } from 'https'
 import { config } from 'dotenv'
 import { join } from 'path'
+import { returnHTTPSCredentials } from '../../../shared/general-utility-module/src/general_utility_module'
 import { log, wrn } from '../../../shared/logging-module/src/logging_module'
 let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.lossConfig.env')}).error
 
@@ -20,6 +22,7 @@ const app = express()
 
 // ENV Constants
 const PORT: number = Number(process.env.DS_LISTEN_PORT)
+const PASSPHRASE: string = String(process.env.HTTPS_CERT_PASSPHRASE)
 
 // Public Variables
 
@@ -43,12 +46,22 @@ function _init(): void{
 	const _authorizationMiddleware = require('./middleware/authorization')
 	const _datastoreRoute = require('./routes/datastore')
 	const _streamingRoute = require('./routes/streaming')
+	const _leaderboardRoute = require('./routes/leaderboard')
 	app.use(_authorizationMiddleware)
 	app.use("/datastore/api/v1/", _datastoreRoute)
 	app.use("/streaming/api/v1/", _streamingRoute)
+	app.use("/leaderboard/api/v1/", _leaderboardRoute)
+
+	// Obtain credentials
+	let credentialData: object | any = returnHTTPSCredentials(join((process.cwd()), './keys'))
+	let credentials: object = {
+		key: credentialData.key,
+		cert: credentialData.cert,
+		passphrase: PASSPHRASE,
+	}
 
 	// Start listening
-	app.listen(PORT, () => {
+	createServer(credentials, app).listen(PORT, () => {
 		log(`LOSS @ Datastore-Server started! || Listening on port ${PORT}`)
 	})
 }

@@ -1,5 +1,6 @@
 // Imports
 import axios from 'axios'
+import https from 'https'
 import { randomBytes, createHash } from 'crypto'
 import { sign, SignOptions, verify } from 'jsonwebtoken'
 
@@ -15,11 +16,10 @@ export interface NewClientIDData {
 	clientToken: string,
 	serverAccessToken: string,
 	serverRefreshToken: string,
-	// salt: Array<string>
 }
 
 // Constants
-const AUTHORIZATION_URL: string = "http://127.0.0.1:36210/authorization/_/authmodule/api/v1"
+const AUTHORIZATION_URL: string = "https://127.0.0.1:36210/authorization/_/authmodule/api/v1"
 
 // ENV Constants
 
@@ -61,8 +61,15 @@ export function decodeJWT(token: string, secretKey: string): Promise<any>{
 }
 
 export function validateAccessToken(accessToken: string, clientToken: string): Promise<any>{
+	// Hacky way of allowing self signed certs
+	// In prod, official CA are MANDATORY
+	let bypassAgent = new https.Agent({
+		rejectUnauthorized: false,
+		requestCert: false,
+	})
+
 	return new Promise((resolve, reject) => {
-		axios.get(AUTHORIZATION_URL + "/validate-access-token", {data: {tokens: {accessToken: accessToken, clientToken: clientToken}}, headers: {"Content-Type": "application/json"}})
+		axios.get(AUTHORIZATION_URL + "/validate-access-token", {data: {tokens: {accessToken: accessToken, clientToken: clientToken}}, headers: {"Content-Type": "application/json"}, httpsAgent: bypassAgent})
 			.catch((error) => {
 				reject(error.response.data)
 			})

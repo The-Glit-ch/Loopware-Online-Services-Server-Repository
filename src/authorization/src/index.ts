@@ -1,8 +1,10 @@
 // Imports
-import express from 'express';
-import { config } from 'dotenv';
+import express from 'express'
+import { createServer } from 'https'
+import { config } from 'dotenv'
 import { join } from 'path'
 import { log, wrn } from '../../../shared/logging-module/src/logging_module'
+import { returnHTTPSCredentials } from '../../../shared/general-utility-module/src/general_utility_module'
 let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.lossConfig.env')}).error
 
 // Docstring
@@ -21,6 +23,7 @@ const app = express()
 
 // ENV Constants
 const PORT: number = Number(process.env.AUTH_LISTEN_PORT)
+const PASSPHRASE: string = String(process.env.HTTPS_CERT_PASSPHRASE)
 
 // Public Variables
 
@@ -48,8 +51,16 @@ function _init(): void{
 	app.use("/authorization/_/dashboard/api/v1/", _dashboardAccessEndpoint)
 	app.use("/authorization/_/authmodule/api/v1/", _authorizationModuleAccessEndpoint)
 
+	// Obtain credentials
+	let credentialData: object | any = returnHTTPSCredentials(join((process.cwd()), './keys'))
+	let credentials: object = {
+		key: credentialData.key,
+		cert: credentialData.cert,
+		passphrase: PASSPHRASE,
+	}
+
 	// Start listening
-	app.listen(PORT, () => {
+	createServer(credentials, app).listen(PORT, () => {
 		log(`LOSS @ Authorization-Server started! || Listening on port ${PORT}`)
 	})
 }

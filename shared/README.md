@@ -5,3 +5,5 @@ Contains any shared code that will be used by each subsystem
 * Logging Module
 
 * Authorization Module
+
+* General Utility Module
