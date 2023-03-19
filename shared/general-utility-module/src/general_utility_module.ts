@@ -24,8 +24,7 @@ import path, { join } from 'path'
 
 // Public Methods
 /**
- * Checks if an object has an undefined key or value. Returns `true`
- * if `undefined` is found
+ * Checks if an object has an undefined key or value. Returns `true` if `undefined` is found
  * @param { object } object - The object to check
  * @returns { boolean } boolean
  */

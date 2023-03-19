@@ -35,7 +35,7 @@ function _init(): void{
 /**
  * Logs a message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
- * @returns { void }
+ * @returns { void } void
  */
 export function log(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -54,7 +54,7 @@ export function log(...message: Array<string>): void{
 /**
  * Logs a warning message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
- * @returns { void }
+ * @returns { void } void
  */
 export function wrn(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -73,7 +73,7 @@ export function wrn(...message: Array<string>): void{
 /**
  * Logs an error message to stdout and writes it to file
  * @param { Array<string> } message - Message to log
- * @returns { void }
+ * @returns { void } void
  */
 export function err(...message: Array<string>): void{
 	let logDate: string = new Date().toLocaleDateString(loggingLocale)
@@ -91,10 +91,10 @@ export function err(...message: Array<string>): void{
 
 // Private Methods
 /**
- * Checks if there is a valid logging directory
+ * Checks if there is a valid logging directory.
  * If false, it creates a new logging directory
  * specified in loggingDirectory constant
- * @returns void
+ * @returns { void } void
  */
 function _checkForLoggingDirectory(): void{
 	let path: string = join(process.cwd(), loggingDirectory)
@@ -108,7 +108,7 @@ function _checkForLoggingDirectory(): void{
 /**
  * Writes data to a log file
  * @param { string } data - Data that should be written to the file. Must be a string
- * @returns void
+ * @returns { void } void
  */
 function _writeToLogFile(data: string): Promise<void>{
 	let path: string = join(process.cwd(), loggingDirectory, loggingFileName)

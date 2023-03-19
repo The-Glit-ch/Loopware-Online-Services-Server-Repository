@@ -247,17 +247,30 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 					.catch((error) => {
 						let responseData: ResponseData = {
 							responseType: "SERVER",
-							responseCode: _responseCodes.AUTH_INVALID_TOKENS,
+							responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 							responseData: {message: error.message},
 						}
 						server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						resolve({isValid: false, clientToken: ""})
 					})
-					.then((validationData) => {
+					.then((validationData: object | any) => {
+						// No data received
 						if (!validationData){ return; }
 
+						// Verification failed
+						if (validationData.code != 200){
+							let responseData: ResponseData = {
+								responseType: "SERVER",
+								responseCode: _responseCodes.AUTH_INVALID_TOKENS,
+								responseData: {message: validationData.message}
+							}
+							server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							resolve({isValid: false, clientToken: ""})
+						}
+						
 						// Return data
-						resolve({isValid: validationData.isValid, clientToken: clientToken})
+						let verificationData: object | any = validationData.data
+						resolve({isValid: verificationData.isValid, clientToken: clientToken})
 					})
 			})
 	})

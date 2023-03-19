@@ -5,8 +5,6 @@
 # */
 
 services:
-  # ClientID storage
-  # Token storage
   mongoDBAuthStorage:
     image: mongo:latest
     container_name: loss-authorization-storage-mongo

@@ -1,0 +1,20 @@
+{
+	"name": "loss-analytics-server",
+	"version": "1.0.0",
+	"description": "A simple server that stores analytical data for your Loss instance",
+	"main": "index.js",
+	"scripts": {
+		"build": "echo \"Building \"LOSS @ Analytics Server\"...\" && tsc",
+		"start": "echo \"Starting \"LOSS @ Analytics Server\"...\" && cd ./build && node ./src/authorization/src/index.js"
+	},
+	"keywords": [],
+	"author": "https://www.github.com/The-Glit-ch",
+	"license": "GPL-3.0-or-later",
+	"dependencies": {
+		"dotenv": "^16.0.3",
+		"redis": "^4.6.5"
+	},
+	"devDependencies": {
+		"@types/node": "^18.15.3"
+	}
+}

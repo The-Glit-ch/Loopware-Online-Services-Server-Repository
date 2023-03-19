@@ -21,4 +21,4 @@ services:
     
 volumes:
   datastoreStorageVolume:
-    name: loss-datastore-mongodb-storage
+    name: loss-datastore-storage-volume

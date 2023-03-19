@@ -1,10 +1,10 @@
 {
-	"name": "loss-logging-module",
+	"name": "loss-requests-module",
 	"version": "1.0.0",
-	"description": "Logging module for all subsystems",
+	"description": "Custom web request module used for interacting with internal Loss services",
 	"main": "index.js",
 	"scripts": {
-		"build": "echo \"Building \"LOSS @ Logger Module\"...\" && tsc"
+		"build": "echo \"Building \"LOSS @ Requests Module\"...\" && tsc"
 	},
 	"keywords": [],
 	"author": "https://github.com/The-Glit-ch",

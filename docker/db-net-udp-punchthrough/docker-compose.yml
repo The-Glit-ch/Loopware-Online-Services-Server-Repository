@@ -7,7 +7,7 @@ services:
   redisCacheInstance:
     image: redis:latest
     container_name: loss-net-udp-punchthrough-cache-redis
-    command: "redis-server --port 36202"
+    command: "redis-server --port 36203"
     ports:
-      - "36202:36202"
+      - "36203:36203"
     restart: always

@@ -37,18 +37,19 @@ router.use((req, res, next) => {
 			res.status(error.code).json({code: error.code, message: error.message})
 			return
 		})
-		.then((returnData) => {
+		.then((returnData: object | any) => {
+			// No data received
 			if (!returnData){ return; }
-			/**
-			 * Yes I know `res.local` are meant for web views and what not
-			 * but I don't care. Way easier than making my own communications pipeline
-			 */
+
+			// Verification failed
+			if (returnData.code != 200){ res.status(returnData.code).json({code: returnData.code, message: returnData.message}); return; }
 			
-			// Store user data
-			res.locals.authorizedUserData = {clientToken: clientToken, appName: returnData.appName}
+			// Store verified user data
+			let verificationData: object | any = returnData.data
+			res.locals.authorizedUserData = {clientToken: clientToken, appName: verificationData.appName}
 			
-			// Next || Data.Data.Data
-			if (returnData.isValid === true){ next('route') }
+			// Next
+			if (verificationData.isValid === true){ next('route') }
 		})
 })
 
