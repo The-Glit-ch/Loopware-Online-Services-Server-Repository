@@ -18,7 +18,7 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 <summary> Net/Live Service </summary>
 - VoIP
 <br>
--( UDP Punchthrough)[https://en.wikipedia.org/wiki/UDP_hole_punching] via custom (TURN Server)[https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT]
+- [UDP Punchthrough](https://en.wikipedia.org/wiki/UDP_hole_punching) via custom [TURN Server](https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT)
 <br>
 - Game/App Analytics
 </details>
