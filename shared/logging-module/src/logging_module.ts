@@ -18,7 +18,7 @@ const loggingDirectory: string = './logs'
 const loggingFileName: string = new Date().toLocaleString(loggingLocale)
 	.replaceAll("/", "-")
 	.replaceAll(",", "_")
-	.replaceAll(":", ".")
+	.replaceAll(":", "-")
 	+ ".log"
 
 // Public Variables

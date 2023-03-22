@@ -1,8 +1,8 @@
 // Imports
 import express from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
-import { log, wrn, err } from '../../../../shared/logging-module/src/logging_module'
 import { decodeJWT } from '../../../../shared/authorization-module/src/authorization_module'
+import { log, wrn, err } from '../../../../shared/logging-module/src/logging_module'
 
 // Docstring
 /**
@@ -19,8 +19,6 @@ import { decodeJWT } from '../../../../shared/authorization-module/src/authoriza
 // Constants
 const router = express.Router()
 const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_URI))
-// Refer to the security warning on the ./routes/dashboard.ts file
-const TRUSTED_IPS: Array<string> = ["::ffff:127.0.0.1"]
 
 // ENV Constants
 const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
@@ -32,9 +30,12 @@ var _connectedToClientTokenStorageDB: boolean = true
 
 // _init()
 async function _init(): Promise<void> {
-	// Enable hacky middleware
+	// Only allow local host
 	router.use((req, res, next) => {
-		TRUSTED_IPS.forEach((ipAddr) => {if (ipAddr == req.ip){ next() }else{ res.status(403).json({code: 403, message: "Forbidden"}); return; }})
+		if (req.ip == "127.0.0.1"){ next(); return; }
+
+		res.status(403).json({code: 403, message: "Forbidden"})
+		return
 	})
 
 	// Connect to client storage

@@ -1,7 +1,7 @@
 // Imports
 import express from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
-import { generateJWT, decodeJWT } from '../../../../shared/authorization-module/src/authorization_module'
+import { generateJWT } from '../../../../shared/authorization-module/src/authorization_module'
 import { err, log, wrn } from '../../../../shared/logging-module/src/logging_module'
 
 // Docstring
@@ -223,7 +223,6 @@ router.post("/refresh", (req, res) => {
 		res.status(500).json({code: 500, message: "Fatal error"})
 		return
 	}
-
 })
 
 router.post("/logout", (req, res) => {

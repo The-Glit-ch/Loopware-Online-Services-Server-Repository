@@ -51,6 +51,20 @@ export function returnHTTPSCredentials(certificatePath: string): object {
 	return {key: keyData, cert: certData}
 }
 
+/**
+ * Stringifies data with `JSON.stringify`
+ * @param { any } data - The data to stringify 
+ * @returns { string } Stringified Data
+ */
+export function stringifyData(data: any): string{ return JSON.stringify(data) }
+
+/**
+ * Converts a JSON string into an object
+ * @param { string } data - The data to parse
+ * @returns { any } Object
+ */
+export function destringifyData(data: string): any{ return JSON.parse(data) }
+
 // Private Methods
 
 // Run

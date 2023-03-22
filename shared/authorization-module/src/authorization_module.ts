@@ -89,7 +89,7 @@ export function decodeJWT(token: string, secretKey: string): Promise<any>{
 export function validateAccessToken(accessToken: string, clientToken: string): Promise<object | any>{
 	// Hacky way of allowing self signed certs
 	// In prod, official CA are MANDATORY
-	let bypassAgent = new https.Agent({ rejectUnauthorized: false, requestCert: false, })
+	let bypassAgent: https.Agent = new https.Agent({ rejectUnauthorized: false, requestCert: false, })
 	
 	// Set data
 	let requestURL: string = AUTHORIZATION_URL + "/validate-access-token"

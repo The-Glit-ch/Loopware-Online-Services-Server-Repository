@@ -110,7 +110,6 @@ router.post("/new-collection", (req, res) => {
 		res.status(500).json({code: 500, message: "Fatal error"})
 		return
 	}
-
 })
 
 router.post("/write-data", (req, res) => {
@@ -156,7 +155,6 @@ router.post("/write-data", (req, res) => {
 		res.status(500).json({code: 500, message: "Fatal error"})
 		return
 	}
-
 })
 
 router.post("/write-data-bulk", (req, res) => {

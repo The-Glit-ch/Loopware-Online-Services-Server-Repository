@@ -1,5 +1,5 @@
 # Loopware Online Subsystem || Server Repository
-An all-in-one solution for handling anything "cloud" related in your Games/Applications. Although this was originally made for the Godot engine this *should* work with any other application as long as they support HTTP(S) and websocket
+An all-in-one solution for handling anything "cloud" related in your Games/Applications. Although this was originally made for the Godot engine this *should* work with any other application as long as they support HTTP(S) and UDP
 
 ## Features
 <details>
@@ -18,7 +18,7 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 <summary> Net/Live Service </summary>
 - VoIP
 <br>
-- NAT Punchthrough
+-( UDP Punchthrough)[https://en.wikipedia.org/wiki/UDP_hole_punching] via custom (TURN Server)[https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT]
 <br>
 - Game/App Analytics
 </details>
@@ -38,10 +38,10 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 * Net/Live Service
 	- VoIP (TODO)❌
 	- UDP Hole Punch (DONE) ✅
-	- Game/App Analytics (TODO)❌
+	- Game/App Analytics (DONE but not implemented fully)⚠️
 
 * Other
 	- Godot Plugin/SDK (Working) 👨‍💻
-	- Dashboard (TODO) ❌
+	- Dashboard (WORKING) 👨‍💻
 
 # THIS IS NOT DONE. DON'T USE IN PRODUCTION (yet.)

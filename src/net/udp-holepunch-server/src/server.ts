@@ -1,9 +1,10 @@
 // Imports
-import { createClient, RedisClientType } from '@redis/client'
+import { createClient, RedisClientType } from 'redis'
 import { createHash, randomBytes } from 'crypto'
 import { createSocket, RemoteInfo } from 'dgram'
 import { config } from 'dotenv'
 import { join } from 'path'
+import { stringifyData, destringifyData } from '../../../../shared/general-utility-module/src/general_utility_module'
 import { decodeJWT, validateAccessToken } from '../../../../shared/authorization-module/src/authorization_module'
 import { log, wrn, err } from '../../../../shared/logging-module/src/logging_module'
 let _environmentLoadingError: Error | undefined = config({path: join(process.cwd(), './.env/.lossConfig.env')}).error
@@ -132,8 +133,8 @@ async function _init(): Promise<void>{
 	await redisCache.connect()
 
 	// Initialize caches
-	await _writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData({}))
-	await _writeCacheData(CURRENT_HOSTED_SESSIONS, _stringifyData({}))
+	await _writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData({}))
+	await _writeCacheData(CURRENT_HOSTED_SESSIONS, stringifyData({}))
 
 	// Start the heartbeat
 	setInterval(() => {_serverHeartbeat()}, 5000)
@@ -211,7 +212,7 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 					responseCode: _responseCodes.AUTH_INVALID_ENCRYPT_KEY,
 					responseData: {message: "Invalid encryption key"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				resolve({isValid: false, clientToken: ""})
 			})
 			.then((decodedToken: object | any) => {
@@ -228,7 +229,7 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 						responseCode: _responseCodes.AUTH_ACCESS_TOKEN_NOT_PROVIDED,
 						responseData: {message: "Access token not provided"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					resolve({isValid: false, clientToken: ""})
 				}
 
@@ -238,7 +239,7 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 						responseCode: _responseCodes.AUTH_CLIENT_TOKEN_NOT_PROVIDED,
 						responseData: {message: "Client token not provided"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					resolve({isValid: false, clientToken: ""})
 				}
 
@@ -250,7 +251,7 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 							responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 							responseData: {message: error.message},
 						}
-						server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						resolve({isValid: false, clientToken: ""})
 					})
 					.then((validationData: object | any) => {
@@ -264,7 +265,7 @@ function _authorizeConnection(incomingClientConnection: IncomingConnection): Pro
 								responseCode: _responseCodes.AUTH_INVALID_TOKENS,
 								responseData: {message: validationData.message}
 							}
-							server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							resolve({isValid: false, clientToken: ""})
 						}
 						
@@ -287,7 +288,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -295,7 +296,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 			log(`registerClientHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is already registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -305,7 +306,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 					responseCode: _responseCodes.CONN_ALREADY_REGISTERED,
 					responseData: {message: "You are already registered"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -328,7 +329,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 			currentConnectedClients[clientIndex] = newClientObject
 
 			// Write data to cache
-			_writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData(currentConnectedClients))
+			_writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData(currentConnectedClients))
 				.catch((error) => {
 					err(`registerClientHandler | Error while writing data to \"${CURRENT_CONNECTED_CLIENTS}\" cache | ${error}`)
 					let responseData: ResponseData = {
@@ -336,7 +337,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then(() => {
@@ -348,7 +349,7 @@ function _registerClientHandler(incomingClientConnection: IncomingConnection, cl
 						responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 						responseData: {message: "Success"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 		})
@@ -377,7 +378,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -385,7 +386,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 			log(`createSessionHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -395,7 +396,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 					responseCode: _responseCodes.CONN_NOT_REGISTERED,
 					responseData: {message: "You are not registered to use this service"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -409,7 +410,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 						responseCode: _responseCodes.CONN_ALREADY_HOSTING_SESSION,
 						responseData: {message: "You are already hosting a session"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				}else{
 					let responseData: ResponseData = {
@@ -417,7 +418,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 						responseCode: _responseCodes.CONN_ALREADY_IN_SESSION,
 						responseData: {message: "You are currently in a session"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				}
 			}
@@ -431,7 +432,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then((fetchedCurrentHostedSessions: any) => {
@@ -439,7 +440,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 					log(`createSessionHandler | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Setup data for new session
 					let sessionCode: string = _generateSessionCode()
@@ -472,7 +473,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 					// Write data
 					// NOTE: If something errors out here its not really a big deal
 					// The server heartbeat *should* take care of it
-					_writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData(currentConnectedClients))
+					_writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData(currentConnectedClients))
 						.catch((error) => {
 							err(`createSessionHandler | Error while writing data to \"${CURRENT_CONNECTED_CLIENTS}\" cache | ${error}`)
 							let responseData: ResponseData = {
@@ -480,11 +481,11 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 								responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 								responseData: {message: "Server error"},
 							}
-							server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							return
 						})
 						.then(() => {
-							_writeCacheData(CURRENT_HOSTED_SESSIONS, _stringifyData(currentHostedSessions))
+							_writeCacheData(CURRENT_HOSTED_SESSIONS, stringifyData(currentHostedSessions))
 								.catch((error) => {
 									err(`createSessionHandler | Error while writing data to \"${CURRENT_HOSTED_SESSIONS}\" cache | ${error}`)
 									let responseData: ResponseData = {
@@ -492,7 +493,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 										responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 										responseData: {message: "Server error"},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									return
 								})
 								.then(() => {
@@ -504,7 +505,7 @@ function _createSessionHandler(incomingClientConnection: IncomingConnection, cli
 										responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 										responseData: {message: "Success", sessionCode: sessionCode},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									return
 								})
 						})
@@ -529,7 +530,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -537,7 +538,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 			log(`findSessionsHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 		
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -547,7 +548,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 					responseCode: _responseCodes.CONN_NOT_REGISTERED,
 					responseData: {message: "You are not registered to use this service"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -560,7 +561,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then((fetchedCurrentHostedSessions: any) => {
@@ -568,7 +569,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 					log(`findSessionsHandler | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Start retrieving sessions
 					let foundSessions: Array<SessionSearchResult> = []
@@ -600,7 +601,7 @@ function _findSessionsHandler(incomingClientConnection: IncomingConnection, clie
 						responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 						responseData: {message: "Success", foundSessions: foundSessions}
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 		})
@@ -619,7 +620,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 			responseCode: _responseCodes.CONN_INVALID_BODY,
 			responseData: {message: "Invalid body | Missing sessionCode"},
 		}
-		server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+		server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 		return
 	}
 
@@ -632,7 +633,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -640,7 +641,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 			log(`joinSessionHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -650,7 +651,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 					responseCode: _responseCodes.CONN_NOT_REGISTERED,
 					responseData: {message: "You are not registered to use this service"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -664,7 +665,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 						responseCode: _responseCodes.CONN_ALREADY_HOSTING_SESSION,
 						responseData: {message: "You are currently hosting a session"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				}else{
 					let responseData: ResponseData = {
@@ -672,7 +673,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 						responseCode: _responseCodes.CONN_ALREADY_IN_SESSION,
 						responseData: {message: "You are already in a session"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				}
 			}
@@ -686,7 +687,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then((fetchedCurrentHostedSessions: any) => {
@@ -694,7 +695,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 					log(`joinSessionHandler | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Check if the session exists
 					let sessionIndex: string = `${clientToken}:${sessionCode}`
@@ -704,7 +705,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 							responseCode: _responseCodes.SESSION_REQUESTED_SESSION_NOT_FOUND,
 							responseData: {message: "Session not found"},
 						}
-						server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						return
 					}
 
@@ -716,7 +717,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 							responseCode: _responseCodes.SESSION_REQUESTED_SESSION_FULL,
 							responseData: {message: "Requested session is full"},
 						}
-						server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						return
 					}
 
@@ -729,7 +730,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 							responseCode: _responseCodes.SESSION_SESSION_PASSWORD_INVALID,
 							responseData: {message: "Invalid password"},
 						}
-						server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						return
 					}
 
@@ -741,7 +742,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 					// Update the session
 					currentHostedSessions[sessionIndex].peers.push(currentConnectedClients[clientIndex])
 
-					_writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData(currentConnectedClients))
+					_writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData(currentConnectedClients))
 						.catch((error) => {
 							err(`joinSessionHandler | Error while writing data to \"${CURRENT_CONNECTED_CLIENTS}\" cache | ${error}`)
 							let responseData: ResponseData = {
@@ -749,11 +750,11 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 								responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 								responseData: {message: "Server error"},
 							}
-							server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							return
 						})
 						.then(() => {
-							_writeCacheData(CURRENT_HOSTED_SESSIONS, _stringifyData(currentHostedSessions))
+							_writeCacheData(CURRENT_HOSTED_SESSIONS, stringifyData(currentHostedSessions))
 								.catch((error) => {
 									err(`joinSessionHandler | Error while writing data to \"${CURRENT_HOSTED_SESSIONS}\" cache | ${error}`)
 									let responseData: ResponseData = {
@@ -761,7 +762,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 										responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 										responseData: {message: "Server error"},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									return
 								})
 								.then(() => {
@@ -779,11 +780,11 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 									}
 
 									// Notify the host
-									server.send(_stringifyData(notificationData), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(notificationData), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 
 									// Notify the peers
 									sessionPeers.forEach((peer: RegisteredClient) => {
-										server.send(_stringifyData(notificationData), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+										server.send(stringifyData(notificationData), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									})
 
 									// Log
@@ -795,7 +796,7 @@ function _joinSessionHandler(incomingClientConnection: IncomingConnection, clien
 										responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 										responseData: {message: "Success"},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 								})
 						})
 				})
@@ -821,7 +822,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -829,7 +830,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 			log(`sendPacketHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -839,7 +840,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 					responseCode: _responseCodes.CONN_NOT_REGISTERED,
 					responseData: {message: "You are not registered to use this service"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -851,7 +852,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 					responseCode: _responseCodes.SESSION_REQUESTED_SESSION_NOT_FOUND,
 					responseData: {message: "You must be in a session in order to send packets"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -864,7 +865,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then((fetchedCurrentHostedSessions: any) => {
@@ -872,7 +873,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 					log(`sendPacketHandler | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Initialize some variables
 					let sessionIndex: string = `${clientToken}:${currentConnectedClients[clientIndex].sessionData.currentSessionCode}`
@@ -890,12 +891,12 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 						log(`Sending packet data to all connected peers`)
 
 						// Host
-						server.send(_stringifyData(sendPacket), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(sendPacket), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 
 						// Peers
 						sessionPeers.forEach((peer: RegisteredClient) => {
 							if (peer != currentConnectedClients[clientIndex]){
-								server.send(_stringifyData(sendPacket), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+								server.send(stringifyData(sendPacket), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							}
 						})
 					}
@@ -905,7 +906,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 						// Log
 						log(`Sending packet data to host`)
 
-						server.send(_stringifyData(sendPacket), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(sendPacket), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					}
 
 					// Check if peer exists
@@ -914,7 +915,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 							// Log
 							log(`Sending packet data to specific peer`)
 							
-							server.send(_stringifyData(sendPacket), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(sendPacket), peer.remoteInfo.port, peer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						}
 					})
 
@@ -923,7 +924,7 @@ function _sendPacketHandler(incomingClientConnection: IncomingConnection, client
 						responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 						responseData: {message: "Success(?)"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 		})
@@ -941,7 +942,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 				responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 				responseData: {message: "Server error"},
 			}
-			server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+			server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 			return
 		})
 		.then((fetchedCurrentConnectedClients: any) => {
@@ -949,7 +950,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 			log(`destroySessionHandler | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Check if the remote is registered
 			let clientIndex: string = `${incomingClientConnection.address}:${incomingClientConnection.port}`
@@ -959,7 +960,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 					responseCode: _responseCodes.CONN_NOT_REGISTERED,
 					responseData: {message: "You are not registered to use this service"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -971,7 +972,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 					responseCode: _responseCodes.SESSION_REQUESTED_SESSION_NOT_FOUND,
 					responseData: {message: "You must be in a session in order to destroy one"},
 				}
-				server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+				server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 				return
 			}
 
@@ -984,7 +985,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 						responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 						responseData: {message: "Server error"},
 					}
-					server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+					server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 					return
 				})
 				.then((fetchedCurrentHostedSessions: any) => {
@@ -992,7 +993,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 					log(`joinSessionHandler | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Fetch the current session the remote is in and if they are a host
 					let currentSessionCode: string = currentConnectedClients[clientIndex].sessionData.currentSessionCode
@@ -1020,7 +1021,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 							currentConnectedClients[sessionPeerIndex].sessionData.currentSessionPeerID = ""
 
 							// Send notification
-							server.send(_stringifyData(notificationData), sessionPeer.remoteInfo.port, sessionPeer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(notificationData), sessionPeer.remoteInfo.port, sessionPeer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						})
 
 						// Update the remote
@@ -1051,13 +1052,13 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 
 						// Notify host
 						let sessionHost: RegisteredClient = currentHostedSessions[sessionIndex].Host
-						server.send(_stringifyData(notificationData), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+						server.send(stringifyData(notificationData), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 						
 						// Notify peers
 						let sessionPeers: Array<RegisteredClient> = currentHostedSessions[sessionIndex].peers
 						sessionPeers.forEach((sessionPeer: RegisteredClient) => {
 							if (sessionPeer != currentConnectedClients[clientIndex]){
-								server.send(_stringifyData(notificationData), sessionPeer.remoteInfo.port, sessionPeer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+								server.send(stringifyData(notificationData), sessionPeer.remoteInfo.port, sessionPeer.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							}
 						})
 
@@ -1072,7 +1073,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 
 					// Write data
 					// NOTE: If this errors out then the peer would still be in the session
-					_writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData(currentConnectedClients))
+					_writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData(currentConnectedClients))
 						.catch((error) => {
 							err(`destroySessionHandler | Error while writing data to \"${CURRENT_CONNECTED_CLIENTS}\" cache | ${error}`)
 							let responseData: ResponseData = {
@@ -1080,11 +1081,11 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 								responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 								responseData: {message: "Server error"},
 							}
-							server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+							server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 							return
 						})
 						.then(() => {
-							_writeCacheData(CURRENT_HOSTED_SESSIONS, _stringifyData(currentHostedSessions))
+							_writeCacheData(CURRENT_HOSTED_SESSIONS, stringifyData(currentHostedSessions))
 								.catch((error) => {
 									err(`destroySessionHandler | Error while writing data to \"${CURRENT_HOSTED_SESSIONS}\" cache | ${error}`)
 									let responseData: ResponseData = {
@@ -1092,7 +1093,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 										responseCode: _responseCodes.SERVER_INTERNAL_ERROR,
 										responseData: {message: "Server error"},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									return
 								})
 								.then(() => {
@@ -1101,7 +1102,7 @@ function _destroySessionHandler(incomingClientConnection: IncomingConnection, cl
 										responseCode: _responseCodes.CONN_ACKNOWLEDGED,
 										responseData: {message: "Success"},
 									}
-									server.send(_stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(responseData), incomingClientConnection.port, incomingClientConnection.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									return
 								})
 						})
@@ -1129,7 +1130,7 @@ function _serverHeartbeat(): void{
 			log(`serverHeartbeat | Fetched data from \"${CURRENT_CONNECTED_CLIENTS}\" cache`)
 
 			// Convert the data from string to object
-			let currentConnectedClients: object | any = _parseData(fetchedCurrentConnectedClients)
+			let currentConnectedClients: object | any = destringifyData(fetchedCurrentConnectedClients)
 
 			// Fetch current hosted sessions
 			_fetchCachedData(CURRENT_HOSTED_SESSIONS)
@@ -1142,7 +1143,7 @@ function _serverHeartbeat(): void{
 					log(`serverHeartbeat | Fetched data from \"${CURRENT_HOSTED_SESSIONS}\" cache`)
 
 					// Convert the data from string to object
-					let currentHostedSessions: object | any = _parseData(fetchedCurrentHostedSessions)
+					let currentHostedSessions: object | any = destringifyData(fetchedCurrentHostedSessions)
 
 					// Setup data
 					Object.keys(_pastConnectedClients).forEach((pastClientIndex: string) => {
@@ -1171,7 +1172,7 @@ function _serverHeartbeat(): void{
 									currentConnectedClients[sessionClientIndex].sessionData.currentSessionPeerID = ""
 
 									// Send notification
-									server.send(_stringifyData(sessionDestroyedNotification), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(sessionDestroyedNotification), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 								})
 
 								// Destroy the session
@@ -1194,10 +1195,10 @@ function _serverHeartbeat(): void{
 								sessionPeers.splice(index, 1)
 
 								// Announce peer left
-								server.send(_stringifyData(peerDisconnectedNotification), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+								server.send(stringifyData(peerDisconnectedNotification), sessionHost.remoteInfo.port, sessionHost.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 								
 								sessionPeers.forEach((client: RegisteredClient) => {
-									server.send(_stringifyData(peerDisconnectedNotification), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+									server.send(stringifyData(peerDisconnectedNotification), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 								})
 							}
 						}
@@ -1210,13 +1211,13 @@ function _serverHeartbeat(): void{
 					_pastConnectedClients = currentConnectedClients
 
 					// Write data
-					_writeCacheData(CURRENT_CONNECTED_CLIENTS, _stringifyData(currentConnectedClients))
+					_writeCacheData(CURRENT_CONNECTED_CLIENTS, stringifyData(currentConnectedClients))
 						.catch((error) => {
 							err(`serverHeartbeat | Error while writing data to \"${CURRENT_CONNECTED_CLIENTS}\" cache | ${error}`)
 							return
 						})
 						.then(() => {
-							_writeCacheData(CURRENT_HOSTED_SESSIONS, _stringifyData(currentHostedSessions))
+							_writeCacheData(CURRENT_HOSTED_SESSIONS, stringifyData(currentHostedSessions))
 								.catch((error) => {
 									err(`serverHeartbeat | Error while writing data to \"${CURRENT_HOSTED_SESSIONS}\" cache | ${error}`)
 									return
@@ -1231,7 +1232,7 @@ function _serverHeartbeat(): void{
 									}
 
 									registeredClientArray.forEach((client: RegisteredClient) => {
-										server.send(_stringifyData(heartbeatData), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
+										server.send(stringifyData(heartbeatData), client.remoteInfo.port, client.remoteInfo.address, (error) => { if (error){ err(`Error while sending response to client | ${error}`); return; } })
 									})
 
 									log(`Server heartbeat sent!`)
@@ -1275,24 +1276,6 @@ function _fetchCachedData(key: string): Promise<any>{
 				resolve(returnData)
 			})
 	})
-}
-
-/**
- * Stringifies data with `JSON.stringify`
- * @param { any } data - The data to stringify 
- * @returns { string } StringifiedData
- */
-function _stringifyData(data: any): string{
-	return JSON.stringify(data)
-}
-
-/**
- * Converts a JSON string into a TS/JS object
- * @param { any } data - The data to parse
- * @returns { any } Object
- */
-function _parseData(data: any): object{
-	return JSON.parse(data)
 }
 
 /**
