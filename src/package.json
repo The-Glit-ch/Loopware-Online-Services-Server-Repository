@@ -1,0 +1,14 @@
+{
+	"name": "loss-mega-package",
+	"version": "1.0.0",
+	"description": "Contains all the needed dependencies for runtime",
+	"author": "https://www.github.com/The-Glit-ch",
+	"license": "GPL-3.0-or-later",
+	"dependencies": {
+		"express": "^4.18.2",
+		"jsonwebtoken": "^9.0.0",
+		"mongodb": "^5.1.0",
+		"dotenv": "^16.0.3",
+		"redis": "^4.6.5"
+	}
+}

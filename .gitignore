@@ -133,5 +133,4 @@ __pycache__/
 *$py.class
 
 # Loss Dev Files
-.rest
-keys
+certs
