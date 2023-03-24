@@ -1,0 +1,29 @@
+# /**
+# * Loopware Online Subsystem @ Datastore database Docker compose file || Simple docker compose file that allows for the creation of
+# * a MongoDB instance for storing all types of data
+# */
+
+services:
+  # Datastore
+  mongoDBDatastoreStorage:
+    image: mongo:latest
+    container_name: loss-datastore-storage-mongodb
+    command: "mongod --port 36201"
+    environment:
+      # It is recommended to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=lossDatastoreMongoDB
+      - MONGO_INITDB_ROOT_PASSWORD=lossDatastoreMongoDB
+    volumes:
+      - type: volume
+        source: lossDatastoreServerDatabaseStorageVolume
+        target: /lossDatastoreServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36201:36201"
+    restart: unless-stopped
+    
+volumes:
+  lossDatastoreServerDatabaseStorageVolume:
+    name: loss-datastore-server-database-storage-volume

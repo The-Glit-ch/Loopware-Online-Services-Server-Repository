@@ -26,22 +26,21 @@ Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
 
 ## Current Features
 * Authorization System
-	- User/Client Authorization (DONE)✅
+	- User/Client Authorization (DONE) ✅
 
 * Datastore Service
-	- Datastore (DONE)✅
-
-	- Leaderboard (DONE)✅
-
+	- Datastore (DONE) ✅
+	- Leaderboard (DONE) ✅
 	- Asset Streaming (DONE) ✅
 
 * Net/Live Service
-	- VoIP (TODO)❌
+	- VoIP (ON-HOLD) ⚠️
 	- UDP Hole Punch (DONE) ✅
-	- Game/App Analytics (DONE but not implemented fully)⚠️
+	- Game/App Analytics (DONE but not implemented fully) ⚠️
 
 * Other
 	- Godot Plugin/SDK (Working) 👨‍💻
-	- Dashboard (WORKING) 👨‍💻
+	- Dashboard (ON-HOLD) ⚠️
+		- CLI (DONE) ✅
 
 # THIS IS NOT DONE. DON'T USE IN PRODUCTION (yet.)

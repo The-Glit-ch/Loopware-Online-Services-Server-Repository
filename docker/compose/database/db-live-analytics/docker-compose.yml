@@ -1,0 +1,25 @@
+# /**
+# * Loopware Online Subsystem @ Analytics database Docker compose file || Simple Docker compose file that allows for the creation of
+# * a Redis storage instance for storing analytical data
+# */
+
+services:
+  # Live/Analytics
+  liveRedisDBAnalyticsStorage:
+    image: redis:latest
+    container_name: loss-live-analytics-storage-redis
+    command: "redis-server --port 36202"
+    volumes:
+      - type: volume
+        source: lossLiveAnalyticsServerDatabaseStorageVolume
+        target: /lossLiveAnalyticsServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36202:36202"
+    restart: unless-stopped
+
+volumes:
+  lossLiveAnalyticsServerDatabaseStorageVolume:
+    name: loss-live-analytics-server-database-storage-volume

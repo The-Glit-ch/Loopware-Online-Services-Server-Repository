@@ -7,9 +7,7 @@ import { Collection, Db, MongoClient } from 'mongodb'
 // Docstring
 /**
  * Loopware Online Subsystem @ Dashboard Access Endpoint || Allows for configuration and status of the
- * Authorization server via the Loss dashboard
- * WARNING: MASSIVE FUCKING SECURITY VULNERABILITY - UPDATE: Mitigated for now
- * TODO: Implement a way to check of the incoming IP is internal or external
+ * Authorization server via the Loss dashboard/cli
  */
 
 // Enums
@@ -19,7 +17,6 @@ import { Collection, Db, MongoClient } from 'mongodb'
 // Constants
 const router: Router = express.Router()
 const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_URI))
-const TRUSTED_IPS: Array<string> = ["::ffff:127.0.0.1", "::ffff:192.168.1.139"]
 const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 
 // Public Variables
@@ -29,8 +26,13 @@ var _connectedToClientTokenStorageDB: boolean = true
 
 // _init()
 async function _init(): Promise<void> {
-	// Enable custom middleware
-	router.use((req, res, next) => { TRUSTED_IPS.forEach((ipAddr) => { if (ipAddr == req.ip) { next() } }) })
+	// Only allow local host
+	router.use((req, res, next) => {
+		if (req.ip == "127.0.0.1") { next(); return; }
+
+		res.status(403).json({ code: 403, message: "Forbidden" })
+		return
+	})
 
 	// Connect to Client Storage
 	try {
@@ -42,8 +44,6 @@ async function _init(): Promise<void> {
 		_connectedToClientTokenStorageDB = false
 	}
 }
-
-
 
 // Public Methods
 router.post("/new-client", (req, res, next) => {

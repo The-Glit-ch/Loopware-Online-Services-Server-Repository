@@ -1,0 +1,29 @@
+# /**
+# * Loopware Online Subsystem @ Authorization database Docker compose file || Simple docker compose file that allows for the creation of
+# * a MongoDB instance for storing ClientIDs and RefreshTokens
+# */
+
+services:
+  # Authorization
+  mongoDBAuthorizationStorage:
+    image: mongo:latest
+    container_name: loss-authorization-storage-mongodb
+    command: "mongod --port 36200"
+    environment:
+      # It is recommended to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=lossAuthorizationMongoDB
+      - MONGO_INITDB_ROOT_PASSWORD=lossAuthorizationMongoDB
+    volumes:
+      - type: volume
+        source: lossAuthorizationServerDatabaseStorageVolume
+        target: /lossAuthorizationServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36200:36200"
+    restart: unless-stopped
+
+volumes:
+  lossAuthorizationServerDatabaseStorageVolume:
+    name: loss-authorization-server-database-storage-volume

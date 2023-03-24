@@ -2,6 +2,12 @@
 	"name": "loss-mega-package",
 	"version": "1.0.0",
 	"description": "Contains all the needed dependencies for runtime",
+	"scripts": {
+		"start-authorization-server": "node ./systems/authorization/src/index.js",
+		"start-datastore-server": "node ./systems/datastore/src/index.js",
+		"start-live-analytics-server": "node ./systems/live/analytics-server/src/index.js",
+		"start-net-udp-punchthrough-server": "node ./systems/net/udp-holepunch-server/src/index.js"
+	},
 	"author": "https://www.github.com/The-Glit-ch",
 	"license": "GPL-3.0-or-later",
 	"dependencies": {

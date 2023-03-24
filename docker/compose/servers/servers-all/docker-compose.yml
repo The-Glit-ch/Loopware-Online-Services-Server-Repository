@@ -1,0 +1,70 @@
+# /**
+# * Loopware Online Subsystem @ All servers || Contains every single server Loss uses
+# */
+
+services:
+  lossAuthorizationServer:
+    image: loss-authorization-server:latest
+    container_name: loss-authorization-server
+    volumes:
+      - type: volume
+        source: lossAuthorizationServerStorageVolume
+        target: /lossAuthorizationServerStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    network_mode: host
+    restart: unless-stopped
+  
+  lossDatastoreServer:
+    image: loss-datastore-server:latest
+    container_name: loss-datastore-server
+    volumes:
+      - type: volume
+        source: lossDatastoreServerStorageVolume
+        target: /lossDatastoreServerStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    network_mode: host
+    restart: unless-stopped
+  
+  lossLiveAnalyticsServer:
+    image: loss-live-analytics-server:latest
+    container_name: loss-live-analytics-server
+    volumes:
+      - type: volume
+        source: lossLiveAnalyticsServerStorageVolume
+        target: /lossLiveAnalyticsServerStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    network_mode: host
+    restart: unless-stopped
+  
+  lossNetUDPPunchthroughServer:
+    image: loss-net-udp-punchthrough-server:latest
+    container_name: loss-net-udp-punchthrough-server
+    volumes:
+      - type: volume
+        source: lossNetUDPPunchthroughServerStorageVolume
+        target: /lossNetUDPPunchthroughServerStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    network_mode: host
+    restart: unless-stopped
+
+volumes:
+  lossAuthorizationServerStorageVolume:
+    name: loss-authorization-server-storage-volume
+  
+  lossDatastoreServerStorageVolume:
+    name: loss-datastore-server-storage-volume
+  
+  lossLiveAnalyticsServerStorageVolume:
+    name: loss-live-analytics-server-storage-volume
+  
+  lossNetUDPPunchthroughServerStorageVolume:
+    name: loss-net-udp-punchthrough-server-storage-volume
+  
