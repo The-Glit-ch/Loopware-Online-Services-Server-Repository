@@ -21,7 +21,7 @@ const app: Express = express()
 const ENV_LOADING_ERROR: Error | undefined = config({ path: join(process.cwd(), './.env/.lossConfig.env') }).error
 
 // ENV Constants
-const PORT: number = Number(process.env.DS_LISTEN_PORT)
+const PORT: number = Number(process.env.DATASTORE_LISTEN_PORT)
 const PASSPHRASE: string = String(process.env.HTTPS_CERT_PASSPHRASE)
 
 // Public Variables

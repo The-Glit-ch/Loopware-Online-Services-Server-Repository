@@ -1,6 +1,7 @@
 // Imports
 import http from 'http'
 import https from 'https'
+import { stringifyData } from '../../general-utility-module/src/general_utility_module'
 
 // Docstring
 /**
@@ -60,10 +61,10 @@ export function request(requestOptions: RequestOptions): Promise<any> {
 			let incomingDataBuffer: Array<Buffer> = []
 
 			// Handle errors
-			res.on('error', (error) => { reject({ error: error }) })
+			res.on('error', (error: Error) => { reject({ error: error }) })
 
 			// Data received, add to buffer array
-			res.on('data', (dataChunk) => { incomingDataBuffer.push(dataChunk) })
+			res.on('data', (dataChunk: any) => { incomingDataBuffer.push(dataChunk) })
 
 			// No more data to read, return
 			res.on('end', () => {
@@ -73,7 +74,7 @@ export function request(requestOptions: RequestOptions): Promise<any> {
 		})
 
 		// Are we sending data?
-		if (requestOptions.requestData != undefined) { request.write(_stringifyData(requestOptions.requestData), (error) => { if (error) { reject(error) } }) }
+		if (requestOptions.requestData != undefined) { request.write(stringifyData(requestOptions.requestData), (error: any) => { if (error) { reject(error) } }) }
 		request.end();
 	})
 }
@@ -86,15 +87,6 @@ export function request(requestOptions: RequestOptions): Promise<any> {
  */
 function _bufferArrayToJSON(dataBuffer: Array<Buffer>): object {
 	return JSON.parse(Buffer.concat(dataBuffer).toString('utf-8'))
-}
-
-/**
- * Stringifies data with `JSON.stringify`
- * @param { any } data - The data to stringify 
- * @returns { string } StringifiedData
- */
-function _stringifyData(data: any): string {
-	return JSON.stringify(data)
 }
 
 // Run

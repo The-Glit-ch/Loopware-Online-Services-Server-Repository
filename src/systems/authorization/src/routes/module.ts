@@ -1,6 +1,7 @@
 // Imports
 import { log, wrn, err } from '../../../../shared/logging-module/src/logging_module'
 import { decodeJWT } from '../../../../shared/authorization-module/src/authorization_module'
+import { objectNullCheck } from '../../../../shared/general-utility-module/src/general_utility_module'
 import express, { Router } from 'express'
 import { Collection, Db, MongoClient } from 'mongodb'
 
@@ -16,10 +17,10 @@ import { Collection, Db, MongoClient } from 'mongodb'
 
 // Constants
 const router: Router = express.Router()
-const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_URI))
+const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTHORIZATION_MONGO_CLIENT_TOKEN_STORAGE_URI))
 
 // ENV Constants
-const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
+const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTHORIZATION_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 
 // Public Variables
 
@@ -30,10 +31,8 @@ var _connectedToClientTokenStorageDB: boolean = true
 async function _init(): Promise<void> {
 	// Only allow local host
 	router.use((req, res, next) => {
-		if (req.ip == "127.0.0.1") { next(); return; }
-
-		res.status(403).json({ code: 403, message: "Forbidden" })
-		return
+		if (req.ip != "127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden" }); return; }
+		next()
 	})
 
 	// Connect to client storage
@@ -49,45 +48,50 @@ async function _init(): Promise<void> {
 
 // Public Methods
 router.get("/validate-access-token", (req, res) => {
-	// Retrieve incoming data
-	let incomingBody: object | any = req.body
-	let accessToken = incomingBody.tokens.accessToken
-	let clientToken = incomingBody.tokens.clientToken
+	// Retrieve data
+	let incomingData: object | any = req.body
 
-	// Check if we have data
-	if (accessToken == undefined || clientToken == undefined) { res.status(400).json({ code: 400, message: "Tokens not supplied" }); return; }
+	// Check if we received an empty body
+	if (Object.keys(incomingData).length === 0) { res.status(400).json({ code: 400, message: "Empty body" }); return; }
 
-	// Lookup the client token
+	// Store data
+	let newValidationData: object | any = {
+		clientToken: incomingData.clientToken,
+		accessToken: incomingData.accessToken,
+	}
+
+	// Null checks
+	if (objectNullCheck(newValidationData)) { res.status(400).json({ code: 400, message: "Invalid body" }); return; }
+
+	// Check connection to database
+	if (!_connectedToClientTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
+
+	// Start the validation process
 	try {
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-		let clientTokenStorageFetchQuery: object = { clientToken: clientToken }
-		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1, appName: 1 } }
+		let clientTokenStorageFetchQuery: object = { clientToken: newValidationData.clientToken }
+		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1 } }
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
 			.catch((error) => {
-				// Look-up error
-				err(`Database error while fetching data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}]| | ${error}`)
+				err(`Database error while fetching data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({ code: 500, message: "Database error", data: { isValid: false } })
 				return
 			})
-			.then((foundClientToken) => {
-				if (!foundClientToken) { res.status(401).json({ code: 401, message: "Invalid client token", data: { isValid: false } }); return; }
+			.then((foundClientInfoObject) => {
+				if (!foundClientInfoObject) { res.status(401).json({ code: 401, message: "Invalid client token", data: { isValid: false } }); return; }
 				log(`Successfully fetched data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}]`)
 
-				// Save return data
-				let serverAccessToken: string = foundClientToken.serverAccessToken
-				let appName: string = foundClientToken.appName
-
 				// Compare access token against the server access token
-				decodeJWT(accessToken, serverAccessToken)
+				decodeJWT(newValidationData.accessToken, foundClientInfoObject.serverAccessToken)
 					.catch((_error) => {
 						res.status(401).json({ code: 401, message: "Invalid access token", data: { isValid: false } })
 						return
 					})
-					.then((_decodedToken) => {
-						if (!_decodedToken) { return; }
-						res.status(200).json({ code: 200, message: "Success", data: { isValid: true, appName: appName } })
+					.then((decodedTokenData: any) => {
+						if (!decodedTokenData) { return; }
+						res.status(200).json({ code: 200, message: "Success", data: { isValid: true, appName: decodedTokenData.appName, clientAccessScopes: decodedTokenData.clientAccessScopes } })
 						return
 					})
 			})

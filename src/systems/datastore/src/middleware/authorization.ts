@@ -1,5 +1,5 @@
 // Imports
-import { validateAccessToken } from '../../../../shared/authorization-module/src/authorization_module'
+import { hasAccessToo, validateAccessToken } from '../../../../shared/authorization-module/src/authorization_module'
 import express, { Router } from 'express'
 
 // Docstring
@@ -43,6 +43,22 @@ router.use((req, res, next) => {
 
 			// Verification failed
 			if (returnData.code != 200) { res.status(returnData.code).json({ code: returnData.code, message: returnData.message }); return; }
+
+			// Check if allowed in the access scope
+			let allowedAccess: boolean = false
+			if (req.path.includes("/datastore")) {
+				allowedAccess = hasAccessToo(returnData.data.clientAccessScopes, "datastore.datastoreService")
+			}
+
+			if (req.path.includes("/leaderboard")) {
+				allowedAccess = hasAccessToo(returnData.data.clientAccessScopes, "datastore.leaderboardService")
+			}
+
+			if (req.path.includes("/stream")) {
+				allowedAccess = hasAccessToo(returnData.data.clientAccessScopes, "datastore.assetStreamingService")
+			}
+
+			if (!allowedAccess) { res.status(403).json({ code: 403, message: "Missing permissions" }); return; }
 
 			// Store verified user data
 			let verificationData: object | any = returnData.data

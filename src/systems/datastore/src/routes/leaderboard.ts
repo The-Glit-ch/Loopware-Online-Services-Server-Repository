@@ -27,7 +27,7 @@ interface LeaderboardCategoryObject {
 
 // Constants
 const router: Router = express.Router()
-const leaderboardStorageAgent: MongoClient = new MongoClient(String(process.env.DS_MONGO_LEADERBOARD_STORAGE_URI))
+const leaderboardStorageAgent: MongoClient = new MongoClient(String(process.env.DATASTORE_MONGO_LEADERBOARD_STORAGE_URI))
 
 // ENV Constants
 

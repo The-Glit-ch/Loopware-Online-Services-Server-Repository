@@ -1,15 +1,14 @@
 // Imports
 import { join } from 'path'
 import { createServer } from 'https'
-import { log, wrn } from '../../../shared/logging-module/src/logging_module'
-import { returnHTTPSCredentials } from '../../../shared/general-utility-module/src/general_utility_module'
+import { log, wrn } from '../../../../shared/logging-module/src/logging_module'
+import { returnHTTPSCredentials } from '../../../../shared/general-utility-module/src/general_utility_module'
 import { config } from 'dotenv'
 import express, { Express } from 'express'
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Authorization Server || The authorization server provides a secure way for clients to verify their identity with Loss.
- * Clients provide their client token and in return are given a refresh-access token pair. Client tokens are generated via the dashboard/cli
+ * Loopware Online Subsystem @ Configuration Server || ALlows for the configuration of Loss services live during deployment
  */
 
 // Enums
@@ -21,7 +20,7 @@ const app: Express = express()
 const ENV_LOADING_ERROR: Error | undefined = config({ path: join(process.cwd(), './.env/.lossConfig.env') }).error
 
 // ENV Constants
-const PORT: number = Number(process.env.AUTHORIZATION_LISTEN_PORT)
+const PORT: number = Number(process.env.LIVE_CONFIGURATION_LISTEN_PORT)
 const PASSPHRASE: string = String(process.env.HTTPS_CERT_PASSPHRASE)
 
 // Public Variables
@@ -36,6 +35,12 @@ function _init(): void {
 	// Enable JSON parsing express middleware
 	app.use(express.json())
 
+	// Only allow local host
+	app.use((req, res, next) => {
+		if (req.ip != "::ffff:127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden" }); return }
+		next()
+	})
+
 	// Log all incoming connections to the server
 	app.use((req, _res, next) => {
 		log(`New "${req.protocol.toUpperCase()}" connection to "${req.baseUrl + req.url}" from "${req.ip}" using "${req.method.toUpperCase()}"`)
@@ -44,9 +49,7 @@ function _init(): void {
 
 	// Setup routing
 	const _authorizationEndpoint = require('./routes/authorization')
-	const _authorizationModuleAccessEndpoint = require('./routes/module')
-	app.use("/authorization/api/v1/", _authorizationEndpoint)
-	app.use("/authorization/_/module/api/v1/", _authorizationModuleAccessEndpoint)
+	app.use("/config/api/v1/authorization/", _authorizationEndpoint)
 
 	// Obtain credentials
 	let credentialData: object | any = returnHTTPSCredentials()
@@ -58,7 +61,7 @@ function _init(): void {
 
 	// Start listening
 	createServer(credentials, app).listen(PORT, () => {
-		log(`LOSS @ Authorization-Server started! || Listening on port ${PORT}`)
+		log(`LOSS @ Live/Configuration-Server started! || Listening on port ${PORT}`)
 	})
 }
 

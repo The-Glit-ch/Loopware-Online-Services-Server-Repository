@@ -15,13 +15,13 @@ import { Collection, Db, MongoClient } from 'mongodb'
 
 // Constants
 const router: Router = express.Router()
-const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_URI))
-const liveTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTH_MONGO_LIVE_TOKEN_STORAGE_URI))
+const clientTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTHORIZATION_MONGO_CLIENT_TOKEN_STORAGE_URI))
+const liveTokenStorageAgent: MongoClient = new MongoClient(String(process.env.AUTHORIZATION_MONGO_LIVE_TOKEN_STORAGE_URI))
 
 // ENV Constants
-const TOKEN_EXP_TIME: string | undefined = process.env.AUTH_TOKEN_EXP_TIME
-const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTH_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
-const LIVE_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTH_MONGO_LIVE_TOKEN_STORAGE_COLLECTION_NAME)
+const TOKEN_EXPIRATION_TIME: string | undefined = process.env.AUTHORIZATION_TOKEN_EXPIRATION_TIME
+const CLIENT_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTHORIZATION_MONGO_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
+const LIVE_TOKEN_STORAGE_COLLECTION_NAME: string = String(process.env.AUTHORIZATION_MONGO_LIVE_TOKEN_STORAGE_COLLECTION_NAME)
 
 // Public Variables
 
@@ -54,71 +54,69 @@ router.post("/register", (req, res) => {
 	// Client token provided?
 	if (clientToken == undefined) { res.status(401).json({ code: 401, message: "Client token not provided" }); return; }
 
-	// Check connection
+	// Check connection to database
 	if (!_connectedToClientTokenStorageDB || !_connectedToLiveTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
 
-	// Lookup token
+	// Begin registration process
 	try {
+		// Lookup token
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 		let clientTokenStorageFetchQuery: object = { clientToken: clientToken }
-		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1, serverRefreshToken: 1, appName: 1 } }
+		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1, serverRefreshToken: 1, appName: 1, clientAccessScopes: 1 } }
 
 		// Begin search
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
-			.catch((error) => {
-				// Look-up error
+			.catch((error: any) => {
 				err(`Database error while fetching data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({ code: 500, message: "Database error" })
 				return
 			})
-			.then((foundClientToken) => {
-				if (!foundClientToken) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
+			.then((foundClientInfoObject: any) => {
+				// Client token was not found
+				if (!foundClientInfoObject) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
 				log(`Successfully fetched data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}]`)
 
-				/**
-				 * INFO: Since we did find the clientToken in client token storage there
-				 * is really no *need* to compare it against the "serverAccessToken"
-				 * This could probably be a massive security flaw but we will see 
-				 * once this is in PROD
-				 */
+				// Prepare data for JWT generation
+				let appName: string = foundClientInfoObject.appName
+				let serverAccessToken: string = foundClientInfoObject.serverAccessToken
+				let serverRefreshToken: string = foundClientInfoObject.serverRefreshToken
+				let clientAccessScopes: object = foundClientInfoObject.clientAccessScopes
+				let payload: object = { appName: appName, clientToken: clientToken, clientAccessScopes: clientAccessScopes }
 
-				// Generate new JWT
-				let serverAccessToken: string = foundClientToken.serverAccessToken
-				let serverRefreshToken: string = foundClientToken.serverRefreshToken
-				let appName: string = foundClientToken.appName
-				let payload: object = { clientToken: clientToken, appName: appName }
-
-				// Generate access token
-				generateJWT(payload, serverAccessToken, { expiresIn: TOKEN_EXP_TIME })
-					.catch((error) => {
+				// Generate a new access token
+				generateJWT(payload, serverAccessToken, { expiresIn: TOKEN_EXPIRATION_TIME })
+					.catch((error: any) => {
 						err(`Error while generating access token | ${error}`)
-						res.status(500).json({ code: 500, message: "Server error while generating access token" })
+						res.status(500).json({ code: 500, message: "Server error" })
 						return
 					})
-					.then((accessToken: string) => {
+					.then((newAccessToken: string) => {
+
 						// Generate refresh token
+						// We're going to use the same payload as the access token
 						generateJWT(payload, serverRefreshToken)
-							.catch((error) => {
+							.catch((error: any) => {
 								err(`Error while generating refresh token | ${error}`)
-								res.status(500).json({ code: 500, message: "Server error while generating refresh token" })
+								res.status(500).json({ code: 500, message: "Server error" })
 								return
-							}).then((refreshToken: string) => {
-								// Add to token storage
+							})
+							.then((newRefreshToken: string) => {
+								// Add refresh token to live token storage
 								let liveTokenStorageDatabase: Db = liveTokenStorageAgent.db()
 								let liveTokenStorageCollection: Collection = liveTokenStorageDatabase.collection(LIVE_TOKEN_STORAGE_COLLECTION_NAME)
-								let writeData: object = { refreshToken: refreshToken }
+								let writeData: object = { refreshToken: newRefreshToken }
 
 								// Write data
 								liveTokenStorageCollection.insertOne(writeData)
-									.catch((error) => {
+									.catch((error: any) => {
 										err(`Database error while writing data to [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}] | ${error}`)
-										res.status(500).json({ code: 500, message: "Error writing data" })
+										res.status(500).json({ code: 500, message: "Database error" })
 										return
 									})
 									.then(() => {
 										log(`Successfully wrote data to [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}]`)
-										res.status(200).json({ code: 200, message: "Success", data: { accessToken: accessToken, refreshToken: refreshToken } })
+										res.status(200).json({ code: 200, message: "Success", data: { accessToken: newAccessToken, refreshToken: newRefreshToken } })
 										return
 									})
 							})
@@ -132,79 +130,71 @@ router.post("/register", (req, res) => {
 })
 
 router.post("/refresh", (req, res) => {
-	// Retrieve refresh and client token
+	// Retrieve client token and refresh token
 	let authorizationHeader: string | undefined = req.headers.authorization
 	let combinedTokens: Array<string> | undefined = authorizationHeader?.split(" ")[1].split(":")
 	let clientToken: string | undefined = combinedTokens?.pop()
 	let refreshToken: string | undefined = combinedTokens?.pop()
 
-	// Refresh and client token provided?
-	if (refreshToken == undefined || clientToken == undefined) { res.status(401).json({ code: 401, message: "Refresh and client token not provided" }); return; }
+	// Client token and refresh token provided?
+	if (refreshToken == undefined || clientToken == undefined) { res.status(401).json({ code: 401, message: "Refresh and/or client token not provided" }); return; }
 
-	// Check connection
-	if (!_connectedToLiveTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
+	// Check connection to database
+	if (!_connectedToClientTokenStorageDB || !_connectedToLiveTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
 
-	// Look-up the client token first, then check the refresh token
+	// Begin refresh process
 	try {
+		// Lookup client token
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 		let clientTokenStorageFetchQuery: object = { clientToken: clientToken }
-		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1, clientToken: 1, appName: 1 } }
+		let clientTokenStorageFetchQueryOptions: object = { projection: { serverAccessToken: 1, appName: 1, clientAccessScopes: 1 } }
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery, clientTokenStorageFetchQueryOptions)
-			.catch((error) => {
-				// Look-up error
+			.catch((error: any) => {
 				err(`Database error while fetching data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({ code: 500, message: "Database error" })
 				return
 			})
-			.then((foundTokens) => {
-				if (!foundTokens) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
+			.then((foundClientInfoObject: any) => {
+				// Client token was not found
+				if (!foundClientInfoObject) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
 				log(`Successfully fetched data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}]`)
 
-				// Store found token data
-				let storedServerAccessToken: string = foundTokens.serverAccessToken
-				let storedClientToken: string = foundTokens.clientToken
-				let storedAppName: string = foundTokens.appName
+				// Store data and prepare the payload
+				let appName: string = foundClientInfoObject.appName
+				let serverAccessToken: string = foundClientInfoObject.serverAccessToken
+				let clientAccessScopes: object = foundClientInfoObject.clientAccessScopes
+				let payload: object = { appName: appName, clientToken: clientToken, clientAccessScopes: clientAccessScopes }
 
-				// Look-up the refresh token on the live token storage database
+				// Lookup refresh token
+				// Putting it in its own try...catch block to better catch errors
 				try {
 					let liveTokenStorageDatabase: Db = liveTokenStorageAgent.db()
 					let liveTokenStorageCollection: Collection = liveTokenStorageDatabase.collection(LIVE_TOKEN_STORAGE_COLLECTION_NAME)
 					let liveTokenStorageFetchQuery: object = { refreshToken: refreshToken }
-					let liveTokenStorageFetchQueryOptions: object = { refreshToken: 1 }
+					let liveTokenStorageFetchQueryOptions: object = { projection: { refreshToken: 1 } }
 
 					liveTokenStorageCollection.findOne(liveTokenStorageFetchQuery, liveTokenStorageFetchQueryOptions)
-						.catch((error) => {
-							// Look-up error
+						.catch((error: any) => {
 							err(`Database error while fetching data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}] | ${error}`)
 							res.status(500).json({ code: 500, message: "Database error" })
 							return
 						})
-						.then((foundRefreshToken) => {
-							if (!foundRefreshToken) { res.status(401).json({ code: 401, message: "Invalid refresh token" }); return; }
+						.then((foundLiveInfoObject: any) => {
+							// Refresh token was not found
+							if (!foundLiveInfoObject) { res.status(401).json({ code: 401, message: "Invalid refresh token" }); return; }
 							log(`Successfully fetched data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}]`)
 
-							/**
-							 * INFO: Same issue as the clientToken one
-							 * Do we decode the token and compare it with the clientToken
-							 * even though you NEED a correct refresh/clientToken pair to even reach here
-							 */
-
-							// Set payload
-							let payload: object = { clientToken: storedClientToken, appName: storedAppName }
-
-							// Generate a new accessToken
-							generateJWT(payload, storedServerAccessToken, { expiresIn: TOKEN_EXP_TIME })
-								.catch((error) => {
+							// Generate a new access token
+							generateJWT(payload, serverAccessToken, { expiresIn: TOKEN_EXPIRATION_TIME })
+								.catch((error: any) => {
 									err(`Error while generating access token | ${error}`)
-									res.status(500).json({ code: 500, message: "Server error while generating access token" })
+									res.status(500).json({ code: 500, message: "Server error" })
 									return
 								})
-								.then((newToken) => {
-									// Return token
-									res.status(200).json({ code: 200, message: "Success", data: { accessToken: newToken } })
-									return
+								.then((newAccessToken: string) => {
+									res.status(200).json({ code: 200, message: "Success", data: { accessToken: newAccessToken } })
 								})
 						})
 				} catch (error) {
@@ -221,77 +211,62 @@ router.post("/refresh", (req, res) => {
 })
 
 router.post("/logout", (req, res) => {
-	// Retrieve refresh and client token
+	// Retrieve client token and refresh token
 	let authorizationHeader: string | undefined = req.headers.authorization
 	let combinedTokens: Array<string> | undefined = authorizationHeader?.split(" ")[1].split(":")
 	let clientToken: string | undefined = combinedTokens?.pop()
 	let refreshToken: string | undefined = combinedTokens?.pop()
 
-	// Refresh and client token provided?
-	if (refreshToken == undefined || clientToken == undefined) { res.status(401).json({ code: 401, message: "Refresh and client token not provided" }); return; }
+	// Client token and refresh token provided?
+	if (refreshToken == undefined || clientToken == undefined) { res.status(401).json({ code: 401, message: "Refresh and/or client token not provided" }); return; }
 
-	// Check connection
-	if (!_connectedToLiveTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
+	// Check connection to database
+	if (!_connectedToClientTokenStorageDB || !_connectedToLiveTokenStorageDB) { res.status(500).json({ code: 500, message: "Database Offline" }); return; }
 
-	// Look-up the client token first, then check the refresh token, and finally logout
+	// Begin logout process
 	try {
+		// Lookup client token
 		let clientTokenStorageDatabase: Db = clientTokenStorageAgent.db()
 		let clientTokenStorageCollection: Collection = clientTokenStorageDatabase.collection(CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 		let clientTokenStorageFetchQuery: object = { clientToken: clientToken }
 
 		clientTokenStorageCollection.findOne(clientTokenStorageFetchQuery)
-			.catch((error) => {
-				// Look-up error
+			.catch((error: any) => {
 				err(`Database error while fetching data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({ code: 500, message: "Database error" })
 				return
 			})
-			.then((foundClientToken) => {
-				if (!foundClientToken) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
+			.then((foundClientInfoObject: any) => {
+				// Client token was not found
+				if (!foundClientInfoObject) { res.status(401).json({ code: 401, message: "Invalid client token" }); return; }
 				log(`Successfully fetched data from [${clientTokenStorageCollection.collectionName}@${clientTokenStorageDatabase.databaseName}]`)
 
-				// Check refresh token
+				// Lookup refresh token
+				// Putting it in its own try...catch block to better catch errors
 				try {
 					let liveTokenStorageDatabase: Db = liveTokenStorageAgent.db()
 					let liveTokenStorageCollection: Collection = liveTokenStorageDatabase.collection(LIVE_TOKEN_STORAGE_COLLECTION_NAME)
 					let liveTokenStorageFetchQuery: object = { refreshToken: refreshToken }
 
-					liveTokenStorageCollection.findOne(liveTokenStorageFetchQuery)
-						.catch((error) => {
-							// Look-up error
-							err(`Database error while fetching data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}] | ${error}`)
+					liveTokenStorageCollection.findOneAndDelete(liveTokenStorageFetchQuery)
+						.catch((error: any) => {
+							err(`Database error while finding and deleting data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}] | ${error}`)
 							res.status(500).json({ code: 500, message: "Database error" })
 							return
 						})
-						.then((foundRefreshToken) => {
-							if (!foundRefreshToken) { res.status(401).json({ code: 401, message: "Invalid refresh token" }); return; }
-							log(`Successfully fetched data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}]`)
+						.then((result: any) => {
+							if (!result.value) { res.status(401).json({ code: 401, message: "Invalid refresh token" }); return; }
+							log(`Successfully deleted data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}]`)
 
-							/**
-							 * INFO: Same dilemma, you get the idea
-							 */
-
-							// Remove token
-							liveTokenStorageCollection.deleteOne(liveTokenStorageFetchQuery)
-								.catch((error) => {
-									// Deletion error
-									err(`Database error while deleting data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}] | ${error}`)
-									res.status(500).json({ code: 500, message: "Database error" })
-									return
-								})
-								.then(() => {
-									log(`Successfully deleted data from [${liveTokenStorageCollection.collectionName}@${liveTokenStorageDatabase.databaseName}]`)
-									res.status(200).json({ code: 200, message: "Successfully logged out" })
-								})
+							res.status(200).json({ code: 200, message: "Success" })
+							return
 						})
-
 				} catch (error) {
 					err(`Fatal error occurred on "/logout" endpoint | Live token lookup block | ${error}`)
 					res.status(500).json({ code: 500, message: "Fatal error" })
 					return
 				}
 			})
-
 	} catch (error) {
 		err(`Fatal error occurred on "/logout" endpoint | Client token lookup block | ${error}`)
 		res.status(500).json({ code: 500, message: "Fatal error" })

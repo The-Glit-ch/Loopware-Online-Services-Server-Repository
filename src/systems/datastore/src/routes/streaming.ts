@@ -19,7 +19,7 @@ import express, { Router } from 'express'
 const router: Router = express.Router()
 
 // ENV Constants
-const STREAMING_FOLDER_PATH: string = join(process.cwd(), String(process.env.DS_STREAMING_FOLDER))
+const STREAMING_FOLDER_PATH: string = join(process.cwd(), String(process.env.DATASTORE_STREAMING_FOLDER))
 
 // Public Variables
 

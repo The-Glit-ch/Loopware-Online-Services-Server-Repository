@@ -24,7 +24,7 @@ interface DatabaseInteraction {
 
 // Constants
 const router: Router = express.Router()
-const datastoreStorageAgent: MongoClient = new MongoClient(String(process.env.DS_MONGO_DATASTORE_STORAGE_URI))
+const datastoreStorageAgent: MongoClient = new MongoClient(String(process.env.DATASTORE_MONGO_DATASTORE_STORAGE_URI))
 
 // ENV Constants
 
@@ -191,7 +191,7 @@ router.get("/fetch-data", (req, res) => {
 		// Fetch data
 		datastoreStorageCollection.findOne(newFetchData.fetchQuery.query, { projection: newFetchData.fetchQuery.projection })
 			.catch((error) => {
-				err(`Database error while fetching data from [Mongo@${datastoreStorageDatabase.databaseName}] | ${error}`)
+				err(`Database error while fetching data from [${datastoreStorageCollection.collectionName}@${datastoreStorageDatabase.databaseName}] | ${error}`)
 				res.status(500).json({ code: 500, message: "Database error" })
 				return
 			})
