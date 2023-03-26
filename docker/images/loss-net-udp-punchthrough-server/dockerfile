@@ -1,0 +1,16 @@
+FROM node:hydrogen-slim
+
+# Configuration
+ENV LISTEN_PORT=36213
+
+# Copy files
+COPY ./build /app
+
+# Chnage workdir
+WORKDIR /app
+
+# Expose port
+EXPOSE ${LISTEN_PORT}/udp
+
+# Run
+ENTRYPOINT [ "npm", "run", "start-net-udp-punchthrough-server" ]

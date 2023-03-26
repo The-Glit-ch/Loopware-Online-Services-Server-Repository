@@ -1,0 +1,23 @@
+{
+	"name": "loss-datastore-server",
+	"version": "1.0.0",
+	"description": "Contains HTTP(S) endpoints for handling data related services",
+	"main": "index.js",
+	"scripts": {
+		"build": "echo \"Building \"LOSS @ Datastore Server\"...\" && tsc",
+		"start": "echo \"Starting \"LOSS @ Datastore Server\"...\" && cd ./build && node ./src/datastore/src/index.js"
+	},
+	"keywords": [],
+	"author": "https://www.github.com/The-Glit-ch",
+	"license": "GPL-3.0-or-later",
+	"dependencies": {
+		"express": "^4.18.2",
+		"jsonwebtoken": "^9.0.0",
+		"mongodb": "^5.1.0",
+		"dotenv": "^16.0.3"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.17",
+		"@types/node": "^18.15.5"
+	}
+}

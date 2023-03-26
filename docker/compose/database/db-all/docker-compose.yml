@@ -1,0 +1,79 @@
+# /**
+# * Loopware Online Subsystem @ All databases || Contains every single database needed by Loss
+# */
+
+services:
+  # Authorization
+  mongoDBAuthorizationStorage:
+    image: mongo:latest
+    container_name: loss-authorization-storage-mongodb
+    command: "mongod --port 36200"
+    environment:
+      # It is recommended to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=lossAuthorizationMongoDB
+      - MONGO_INITDB_ROOT_PASSWORD=lossAuthorizationMongoDB
+    volumes:
+      - type: volume
+        source: lossAuthorizationServerDatabaseStorageVolume
+        target: /lossAuthorizationServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36200:36200"
+    restart: unless-stopped
+  
+  # Datastore
+  mongoDBDatastoreStorage:
+    image: mongo:latest
+    container_name: loss-datastore-storage-mongodb
+    command: "mongod --port 36201"
+    environment:
+      # It is recommended to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=lossDatastoreMongoDB
+      - MONGO_INITDB_ROOT_PASSWORD=lossDatastoreMongoDB
+    volumes:
+      - type: volume
+        source: lossDatastoreServerDatabaseStorageVolume
+        target: /lossDatastoreServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36201:36201"
+    restart: unless-stopped
+  
+  # Live/Analytics
+  liveRedisDBAnalyticsStorage:
+    image: redis:latest
+    container_name: loss-live-analytics-storage-redis
+    command: "redis-server --port 36202"
+    volumes:
+      - type: volume
+        source: lossLiveAnalyticsServerDatabaseStorageVolume
+        target: /lossLiveAnalyticsServerDatabaseStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36202:36202"
+    restart: unless-stopped
+  
+  # Net/UDP Punchthrough
+  netRedisDBUDPPunchthroughCache:
+    image: redis:latest
+    container_name: loss-net-udp-punchthrough-cache-redis
+    command: "redis-server --port 36203"
+    ports:
+      - "36203:36203"
+    restart: unless-stopped
+
+volumes:
+  lossAuthorizationServerDatabaseStorageVolume:
+    name: loss-authorization-server-database-storage-volume
+  
+  lossDatastoreServerDatabaseStorageVolume:
+    name: loss-datastore-server-database-storage-volume
+  
+  lossLiveAnalyticsServerDatabaseStorageVolume:
+    name: loss-live-analytics-server-database-storage-volume

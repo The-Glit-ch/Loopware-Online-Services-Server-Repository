@@ -1,2 +1,2 @@
-# Loopware Online Subsystem - Docker
-These subsystems SHOULD be ran in a dockerized environment to allow for scale and ease of management. In this folder you can find many docker-compose files that can suit any individual need
+# Loopware Online Subsystem - Docker Folder
+Contains docker images and compose files that can be used to spin up a pre-made or custom Loss instance

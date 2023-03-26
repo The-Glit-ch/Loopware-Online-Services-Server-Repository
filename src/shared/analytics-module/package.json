@@ -1,0 +1,15 @@
+{
+	"name": "loss-analytics-module",
+	"version": "1.0.0",
+	"description": "Frontend module that allows for analytical data to be saved for any current and future system", 
+	"main": "index.js",
+	"scripts": {
+		"build": "echo \"Building \"LOSS @ Analytics Module\"...\" && tsc"
+	},
+	"keywords": [],
+	"author": "https://github.com/The-Glit-ch",
+	"license": "GPL-3.0-or-later",
+	"devDependencies": {
+		"@types/node": "^18.15.5"
+	}
+}
