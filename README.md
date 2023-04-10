@@ -1,5 +1,5 @@
-# Loopware Online Subsystem || Server Repository
-An all-in-one solution for handling anything "cloud" related in your Games/Applications. Although this was originally made for the Godot engine this *should* work with any other application as long as they support HTTP(S) and UDP
+# Loopware Online Subsystem(Loss) || Server Repository
+An all-in-one solution for handling anything "cloud" related in your games/applications. Although this was originally made for the Godot engine this *should* work with any other application as long as they support HTTP(S) and UDP
 
 ## Features
 <details>

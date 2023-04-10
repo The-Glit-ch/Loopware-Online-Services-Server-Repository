@@ -1,73 +1,58 @@
-# Loopware Online Subsystem @ docker-setup.py || Automatically sets up your docker containers
-# UNIX only
-# This is so fucking cursed I cant
-# TODO: IMPROVE A LOT OF THE BUILD/SETUP PROCESS
-
+# Imports
 import subprocess
-from subprocess import Popen
+from subprocess import PIPE
 from typing import Final
 
-__version__: Final[str] = "1.0.0"
+# Docstring
+# Loopware Online Subsystem @ Automated Docker setup script
+# Automates the setup of databases
+
+# Classes
+
+# Enums
+
+# Interface
+
+# Constants
+SETUP_INFO: Final[dict] = {
+	clientTokenStorage: { user: "clientTokenStorageAgent", pwd: "clientTokenStorageAgent", db: "clientTokenStorage"},
+	liveTokenStorage: { user: "liveTokenStorageAgent", pwd: "liveTokenStorageAgent", db: "liveTokenStorage"},
+	datastoreStorage: { user: "datastoreStorageAgent", pwd: "datastoreStorageAgent", db: "datastoreStorage"},
+	leaderboardStorage: { user: "leaderboardStorageAgent", pwd: "leaderboardStorageAgent", db: "leaderboardStorage"},
+}
+AUTHORIZATION_CONTAINER_ID: Final[str] = ""
+DATASTORE_CONTAINER_ID: Final[str] = ""
+CREATE_USER_COMMAND_TEMPLATE: Final[str] = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "{db}", }}] }})'
+
+# ENV Constants
+
+# Public Variables
+
+# Private Variables
 __author__: Final[str] = "https://github.com/The-Glit-ch"
+__version__: Final[str] = "PRE-1.0.0"
 
-# Configuration
-authorizationAdminUser: Final[str] = "lossAuthorizationMongoDB"
-authorizationAdminPassword: Final[str] = "lossAuthorizationMongoDB"
-authorizationListeningPort: Final[int] = 36200
-authorizationContainerID: Final[str] = ""
-
-datastoreAdminUser: Final[str] = "lossDatastoreMongoDB"
-datastoreAdminPassword: Final[str] = "lossDatastoreMongoDB"
-datastoreListeningPort: Final[int] = 36201
-datastoreContainerID: Final[str] = ""
-
-# Authorization
-authorizationClientTokenStorageUser: Final[str] = "clientTokenStorageAgent"
-authorizationClientTokenStoragePassword: Final[str] = "clientTokenStorageAgent"
-authorizationLiveTokenStorageUser: Final[str] = "liveTokenStorageAgent"
-authorizationLiveTokenStoragePassword: Final[str] = "liveTokenStorageAgent"
-
-# Datastore
-datastoreDatastoreStorageUser: Final[str] = "datastoreStorageAgent"
-datastoreDatastoreStoragePassword: Final[str] = "datastoreStorageAgent"
-datastoreLeaderboardStorageUser: Final[str] = "leaderboardStorageAgent"
-datastoreLeaderboardStoragePassword: Final[str] = "leaderboardStorageAgent"
-
-
+# main()
 def main() -> None:
-	# Setup the authorization server
-	print("Setting up the authorization database")
-	
-	# Open and connect a new mongosh instance
-	print("Opening a connection to the authorization database")
+	# Setup the authorization database
+	print("Setting up the authorization database...")
+
+	# Funky stuff going on here
 	try:
-		clientTokenStorageCreateUserCommand: str = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "clientTokenStorage", }}] }})'.format(user=authorizationClientTokenStorageUser, pwd=authorizationClientTokenStoragePassword)
-		liveTokenStorageCreateUserCommand: str = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "liveTokenStorage", }}] }})'.format(user=authorizationLiveTokenStorageUser, pwd=authorizationLiveTokenStoragePassword)
-		authorizationConnectionURI: str = f'mongodb://{authorizationAdminUser}:{authorizationAdminPassword}@127.0.0.1:{authorizationListeningPort}/admin'
-		authorizationDatabase = Popen(['docker', 'exec', '-i', authorizationContainerID, 'mongosh', '--eval', '"use clientTokenStorage"', '--eval', f'"{clientTokenStorageCreateUserCommand}"', '--eval', '"use liveTokenStorage"', '--eval', f'"{liveTokenStorageCreateUserCommand}"', authorizationConnectionURI], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		authorizationDatabase.wait()
+		clientTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=SETUP_INFO.clientTokenStorage.user, pwd=SETUP_INFO.clientTokenStorage.pwd, db=SETUP_INFO.clientTokenStorage.db)
+		liveTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=SETUP_INFO.liveTokenStorage.user, pwd=SETUP_INFO.liveTokenStorage.pwd, db=SETUP_INFO.liveTokenStorage.db)
+		authorizationDatabase: str = subprocess.run(['docker', 'exec', '-i', ''])
 	except Exception as call_error:
-		print(f"Error occurred | {call_error}")
-	
-	# Exit
-	print("Authorization setup done")
+		pass
 
-	# Setup the datastore server
-	print("Setting up the datastore database")
 
-	# Open and connect a new mongosh instance
-	print("Opening a connection to the datastore database")
-	try:
-		datastoreStorageCreateUserCommand: str = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "datastoreStorage", }}] }})'.format(user=datastoreDatastoreStorageUser, pwd=datastoreDatastoreStoragePassword)
-		leaderboardStorageCreateUserCommand: str = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "leaderboardStorage", }}] }})'.format(user=datastoreLeaderboardStorageUser, pwd=datastoreLeaderboardStoragePassword)
-		datastoreConnectionURI: str = f'mongodb://{datastoreAdminUser}:{datastoreAdminPassword}@127.0.0.1:{datastoreListeningPort}/admin'
-		datastoreDatabase = Popen(['docker', 'exec', '-i', datastoreContainerID, 'mongosh', '--eval', '"use datastoreStorage"', '--eval', f'"{datastoreStorageCreateUserCommand}"', '--eval', '"use leaderboardStorage"', '--eval', f'"{leaderboardStorageCreateUserCommand}"', datastoreConnectionURI], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		datastoreDatabase.wait()
-	except Exception as call_error:
-		print(f"Error occurred | {call_error}")
+# Public Methods
 
-	# Exit
-	print("Datastore setup done")
+# Private Methods
 
+# Callbacks
+
+# Run
 if __name__ == "__main__":
+	print(f"Loopware Online Subsystem @ Automated Docker setup script | Version {__version__}")
 	main()

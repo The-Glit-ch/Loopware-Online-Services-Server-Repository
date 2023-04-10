@@ -1,6 +1,10 @@
 // Imports
 
 // Docstring
+/**
+ * Loopware Online Subsystem @ Authorization/Configuration Endpoint
+ * Configuration endpoint for the authorization service
+ */
 
 // Classes
 
