@@ -44,7 +44,7 @@ def main() -> None:
 	print("Copying requires files")
 	_system_copy("./src/package-lock.json", "./build")
 	_system_copy("./src/package.json", "./build")
-	_system_copy("./.env/.env", "./build")
+	_system_copy("./env/.env", "./build")
 	_system_copy("./certs/", "./build")
 
 	# Change to the build directory

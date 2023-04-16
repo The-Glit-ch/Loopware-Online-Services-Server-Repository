@@ -13,13 +13,33 @@ import { serializeData } from '../../modules/utility_module/module'
 // Classes
 
 // Enums
+export enum RequestMethod {
+	GET = "GET",
+	HEAD = "HEAD",
+	POST = "POST",
+	PUT = "PUT",
+	DELETE = "DELETE",
+	CONNECT = "CONNECT",
+	OPTIONS = "OPTIONS",
+	TRACE = "TRACE",
+	PATCH = "PATCH",
+}
 
 // Interface
+interface RequestPayload {
+	agent: http.Agent | https.Agent | boolean,
+	method: string,
+	protocol: string,
+	hostname: string,
+	port: string,
+	path: string,
+	headers: http.OutgoingHttpHeaders,
+}
+
 export interface RequestOptions {
-	agent?: { http?: http.Agent, https?: https.Agent, },
-	payload?: object,
 	headers?: http.OutgoingHttpHeaders,
-	method?: string | "GET",
+	agent?: http.Agent | https.Agent | boolean,
+	body?: any,
 }
 
 // Constants
@@ -35,81 +55,75 @@ export interface RequestOptions {
 // Public Methods
 /**
  * Make a HTTP/S request to a remote server
- * @param { string } url - The server's URL
- * @param { RequestOptions } options - Additional options for the request 
- * @returns { Promise<Error | object> } Promise
+ * @param { string | URL } url - The server's URL
+ * @param { RequestMethod } method - The request method
+ * @param { RequestOptions } requestOptions - Extra options for the request
+ * @returns { Promise<any | Error > } - Returns a promise
  */
-export function request(url: string, options?: RequestOptions): Promise<Error | object> {
+export function request(url: string | URL, method: RequestMethod, requestOptions?: RequestOptions): Promise<any | Error> {
 	return new Promise((resolve, reject) => {
-		// Parse the URL and see if we are doing HTTP or HTTPS
-		let parsedURL: URL = new URL(url)
-		let requestedURLProtocol: string = parsedURL.protocol
-		let requestedURLHostname: string = parsedURL.hostname
-		let requestedURLPort: string = parsedURL.port
-		let requestedURLPathname: string = parsedURL.pathname
+		// Parse the URL into a URL object if needed
+		if (typeof (url) === "string") { url = new URL(url); }
 
-		if (requestedURLProtocol === "http:") {
-			// Create a request payload
-			let payload: http.RequestOptions = {
-				agent: options?.agent?.http,
-				hostname: requestedURLHostname,
-				path: requestedURLPathname,
-				port: requestedURLPort,
-				headers: options?.headers,
-				method: options?.method,
-			}
+		// Retrieve URL data
+		let requestProtocol: string = url.protocol
+		let requestHostname: string = url.hostname
+		let requestPort: string = url.port
+		let requestPath: string = url.pathname
 
-			// Send the request and start the stream
-			let request: http.ClientRequest = http.request(url, payload, (res: http.IncomingMessage) => {
-				// Make new buffer array
-				let bufferArray: Array<Buffer> = []
-
-				// Handle errors
-				res.on('error', (error: Error) => { reject({ error: error }); })
-
-				// Add buffer to buffer array
-				res.on('data', (chunk: any) => { bufferArray.push(chunk); })
-
-				// Data stream finished, return data
-				res.on('end', () => { resolve((bufferArray.length != 0) ? (_bufferArrayToObject(bufferArray)) : ({})); })
-			})
-
-			// Send data if available
-			if (options?.payload) { request.write(serializeData(options.payload), (error: Error | null | undefined) => { if (error) { reject(error); } }) }
-			request.end()
+		// Create a payload
+		let requestPayload: RequestPayload = {
+			agent: requestOptions?.agent || false,
+			method: method,
+			protocol: requestProtocol,
+			hostname: requestHostname,
+			port: requestPort,
+			path: requestPath,
+			headers: requestOptions?.headers || {}
 		}
 
-		if (requestedURLProtocol === "https:") {
-			// Create a request payload
-			let payload: http.RequestOptions = {
-				agent: options?.agent?.http,
-				hostname: requestedURLHostname,
-				path: requestedURLPathname,
-				port: requestedURLPort,
-				headers: options?.headers,
-				method: options?.method,
-			}
-
-			// Send the request and start the stream
-			let request: http.ClientRequest = https.request(url, payload, (res: http.IncomingMessage) => {
-				// Make new buffer array
+		// Send request
+		if (requestProtocol === "http:") {
+			let httpRequest: http.ClientRequest = http.request(url, requestPayload, (res: http.IncomingMessage) => {
+				// Make a buffer array
 				let bufferArray: Array<Buffer> = []
 
 				// Handle errors
-				res.on('error', (error: Error) => { reject({ error: error }); })
+				res.on('error', (error: Error) => { reject({ error: error, }); })
 
-				// Add buffer to buffer array
+				// Add incoming data to buffer
 				res.on('data', (chunk: any) => { bufferArray.push(chunk); })
 
-				// Data stream finished, return data
-				res.on('end', () => { resolve((bufferArray.length != 0) ? (_bufferArrayToObject(bufferArray)) : ({})); })
+				// Handle closing of data stream
+				res.on('end', () => { resolve((bufferArray.length === 0) ? ({}) : (_bufferArrayToObject(bufferArray))); })
 			})
 
-			// Send data if available
-			if (options?.payload) { request.write(serializeData(options.payload), (error: Error | null | undefined) => { if (error) { reject(error); } }) }
-			request.end()
+			// Send any body data
+			if (requestOptions?.body) { httpRequest.write(serializeData(requestOptions.body), (error: Error | null | undefined) => { if (error) { reject({ error: error }); }; }); }
+			httpRequest.end()
+		}
+
+		if (requestProtocol === "https:") {
+			let httpRequest: http.ClientRequest = https.request(url, requestPayload, (res: http.IncomingMessage) => {
+				// Make a buffer array
+				let bufferArray: Array<Buffer> = []
+
+				// Handle errors
+				res.on('error', (error: Error) => { reject({ error: error, }); })
+
+				// Add incoming data to buffer
+				res.on('data', (chunk: any) => { bufferArray.push(chunk); })
+
+				// Handle closing of data stream
+				res.on('end', () => { resolve((bufferArray.length === 0) ? ({}) : (_bufferArrayToObject(bufferArray))); })
+			})
+
+			// Send any body data
+			if (requestOptions?.body) { httpRequest.write(serializeData(requestOptions.body), (error: Error | null | undefined) => { if (error) { reject({ error: error }); }; }); }
+			httpRequest.end()
 		}
 	})
+
 }
 
 // Private Methods

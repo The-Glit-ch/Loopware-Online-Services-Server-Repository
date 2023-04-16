@@ -1,5 +1,6 @@
 // Imports
-import express, { Router } from 'express'
+import { app } from '../../index'
+import express, { Express, Router } from 'express'
 
 // Docstring
 /**
@@ -24,14 +25,16 @@ const router: Router = express.Router()
 
 // _init()
 function _init(): void {
+	// Retrieve localhost middleware
+	let localhostMiddleware = app.get('LOSS_MIDDLEWARE_LOCALHOST')
+
 	// Enable sub routes
-	let localhost = require('../../middleware/localhost')
+	let moduleEndpoint = require('./subroutes/module')
 	let configurationEndpoint = require('./subroutes/configuration')
 	let authorizationEndpoint = require('./subroutes/authorization')
-	let moduleEndpoint = require('./subroutes/module')
-	router.use("/authorization", authorizationEndpoint)
-	router.use("/_/configuration/", localhost, configurationEndpoint)
-	router.use("/_/module/", localhost, moduleEndpoint)
+	router.use("/_/module/", localhostMiddleware, moduleEndpoint)
+	router.use("/_/configuration/", localhostMiddleware, configurationEndpoint)
+	router.use("/authorization/", authorizationEndpoint)
 }
 
 // Public Methods

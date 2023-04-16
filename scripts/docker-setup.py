@@ -1,11 +1,11 @@
 # Imports
 import subprocess
-from subprocess import PIPE
+from subprocess import CalledProcessError
 from typing import Final
 
 # Docstring
 # Loopware Online Subsystem @ Automated Docker setup script
-# Automates the setup of databases
+# Automates the setup of databases || Better than the previous version to be honest
 
 # Classes
 
@@ -14,15 +14,18 @@ from typing import Final
 # Interface
 
 # Constants
-SETUP_INFO: Final[dict] = {
-	clientTokenStorage: { user: "clientTokenStorageAgent", pwd: "clientTokenStorageAgent", db: "clientTokenStorage"},
-	liveTokenStorage: { user: "liveTokenStorageAgent", pwd: "liveTokenStorageAgent", db: "liveTokenStorage"},
-	datastoreStorage: { user: "datastoreStorageAgent", pwd: "datastoreStorageAgent", db: "datastoreStorage"},
-	leaderboardStorage: { user: "leaderboardStorageAgent", pwd: "leaderboardStorageAgent", db: "leaderboardStorage"},
+AUTHORIZATION_DATABASE_CONTAINER_ID: Final[str] = ""
+AUTHORIZATION_DATABASE_CONNECTION_INFO: Final[list] = ["user", "password", "port"]
+DATASTORE_DATABASE_CONTAINER_ID: Final[str] = ""
+DATASTORE_DATABASE_CONNECTION_INFO: Final[list] = ["user", "password", "port"]
+USER_SETUP_INFO: Final[dict] = {
+	"clientTokenStorageUser": ["user", "password", "database"],
+	"liveTokenStorageUser": ["user", "password", "database"],
+	"datastoreStorageUser": ["user", "password", "database"],
+	"leaderboardStorageUser": ["user", "password", "database"],
 }
-AUTHORIZATION_CONTAINER_ID: Final[str] = ""
-DATASTORE_CONTAINER_ID: Final[str] = ""
-CREATE_USER_COMMAND_TEMPLATE: Final[str] = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "{db}", }}] }})'
+CREATE_USER_COMMAND_TEMPLATE: Final[str] = 'db.createUser({{ user: "{user}", pwd: "{pwd}", roles: [{{ role: "readWrite", db: "{db}", }}], }})'
+MONGOSH_CONNECTION_URI_TEMPLATE: Final[str] = 'mongodb://{user}:{pwd}@127.0.0.1:{port}/admin'
 
 # ENV Constants
 
@@ -37,13 +40,20 @@ def main() -> None:
 	# Setup the authorization database
 	print("Setting up the authorization database...")
 
-	# Funky stuff going on here
 	try:
-		clientTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=SETUP_INFO.clientTokenStorage.user, pwd=SETUP_INFO.clientTokenStorage.pwd, db=SETUP_INFO.clientTokenStorage.db)
-		liveTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=SETUP_INFO.liveTokenStorage.user, pwd=SETUP_INFO.liveTokenStorage.pwd, db=SETUP_INFO.liveTokenStorage.db)
-		authorizationDatabase: str = subprocess.run(['docker', 'exec', '-i', ''])
-	except Exception as call_error:
-		pass
+		clientTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=USER_SETUP_INFO["clientTokenStorageUser"][0], pwd=USER_SETUP_INFO["clientTokenStorageUser"][1], db=USER_SETUP_INFO["clientTokenStorageUser"][2])
+		liveTokenStorageCreateUserCommand: str = CREATE_USER_COMMAND_TEMPLATE.format(user=USER_SETUP_INFO["liveTokenStorageUser"][0], pwd=USER_SETUP_INFO["liveTokenStorageUser"][1], db=USER_SETUP_INFO["liveTokenStorageUser"][2])
+		authorizationDatabaseConnectionURI: str = MONGOSH_CONNECTION_URI_TEMPLATE.format(user=AUTHORIZATION_DATABASE_CONNECTION_INFO[0], pwd=AUTHORIZATION_DATABASE_CONNECTION_INFO[1], port=AUTHORIZATION_DATABASE_CONNECTION_INFO[2])
+		createClientTokenStorageUserCommand: list = f'docker_exec_-i_{AUTHORIZATION_DATABASE_CONTAINER_ID}_mongosh_--eval_"use {USER_SETUP_INFO["clientTokenStorageUser"][2]}"_--eval_"{clientTokenStorageCreateUserCommand}"_{authorizationDatabaseConnectionURI}'.split('_')
+		createLiveTokenStorageUserCommand: list = f'docker_exec_-i_{AUTHORIZATION_DATABASE_CONTAINER_ID}_mongosh_--eval_"use {USER_SETUP_INFO["liveTokenStorageUser"][2]}"_--eval_"{liveTokenStorageCreateUserCommand}"_{authorizationDatabaseConnectionURI}'.split('_')
+		subprocess.Popen(createClientTokenStorageUserCommand, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+		subprocess.Popen(createLiveTokenStorageUserCommand, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+	except CalledProcessError as call_error:
+		print("An error occurred: ", call_error)
+		return
+	print("Done!")
+	return
+	# Setup the datastore database
 
 
 # Public Methods

@@ -25,10 +25,7 @@ const router: Router = express.Router()
 // _init()
 
 // Public Methods
-router.use((req, res, next) => {
-	if (req.ip !== "::ffff:127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden" }); return; }
-	next()
-})
+router.use((req, res, next) => { if (req.ip !== "::ffff:127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden", }); return; }; next(); }) // Yes this is a one liner, no I'm not changing it
 
 // Private Methods
 

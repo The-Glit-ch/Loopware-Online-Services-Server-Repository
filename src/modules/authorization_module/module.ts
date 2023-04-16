@@ -41,7 +41,7 @@ export function generateClientToken(appName: string, tokenSize: number = 64, acc
 		let serverAccessToken: string = createHash('sha256').update((prefixSalt + newClientToken + suffixSalt)).digest('base64')
 		let serverRefreshToken: string = randomBytes(tokenSize).toString('utf-8')
 
-		resolve({ appName: appName, clientToken: newClientToken, serverAccessToken: serverAccessToken, serverRefreshToken: serverRefreshToken, clientAccessScopes: accessScopes })
+		resolve({ appName: appName, clientToken: newClientToken, serverAccessToken: serverAccessToken, serverRefreshToken: serverRefreshToken, clientAccessScopes: accessScopes, })
 	})
 }
 

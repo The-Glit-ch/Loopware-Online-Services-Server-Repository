@@ -43,7 +43,7 @@ export function returnCertificateCredentials(): CertificateCredentials {
 	let keyData: string = readFileSync(keyPath, 'utf8')
 	let certData: string = readFileSync(certPath, 'utf8')
 
-	return { key: keyData, cert: certData }
+	return { key: keyData, cert: certData, }
 }
 
 /**
@@ -60,6 +60,22 @@ export function serializeData(data: any): string { return JSON.stringify(data); 
  */
 export function deserializeData(data: any): any { return JSON.parse(data); }
 
+/**
+ * Returns the content length of a buffer string in bytes
+ * @param { any } data - Data
+ * @returns { number } The length in bytes
+ */
+export function returnContentLength(data: any): number { return Buffer.byteLength(Buffer.from(serializeData(data))); }
+
+/**
+ * Checks if a given object has a null/undefined key/value pair
+ * @param { object } object - The object to check
+ * @returns { boolean } True if an object has a undefined value, False if it contains none
+ */
+export function objectNullCheck(object: object): boolean {
+	Object.entries(object).forEach(([key, value]) => { if (key === undefined || value === undefined) { return true; }; })
+	return false
+}
 // Private Methods
 
 // Callbacks

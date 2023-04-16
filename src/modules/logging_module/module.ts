@@ -26,7 +26,7 @@ const LOGGING_LOCALE: string = "eu"
 // Private Variables
 
 // _init()
-function _init(): void { _createLoggingDirectory() }
+function _init(): void { _createLoggingDirectory(); }
 
 // Public Methods
 /**

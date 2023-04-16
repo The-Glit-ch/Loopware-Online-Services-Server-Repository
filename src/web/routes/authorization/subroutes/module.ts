@@ -1,4 +1,5 @@
 // Imports
+import express, { Router } from 'express'
 
 // Docstring
 
@@ -9,6 +10,7 @@
 // Interface
 
 // Constants
+const router: Router = express.Router()
 
 // ENV Constants
 
@@ -25,3 +27,4 @@
 // Callbacks
 
 // Run
+module.exports = router

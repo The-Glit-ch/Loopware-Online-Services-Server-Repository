@@ -1,11 +1,12 @@
 // Imports
-import { log, wrn, err } from '../../../modules/logging_module/module'
+import { app } from '../../index'
 import express, { Router } from 'express'
 
 // Docstring
 /**
  * Loopware Online Subsystem @ Configuration Endpoint
  * A command and control center for all other Loss services
+ * SHOULD be used with the Loss CLI tool
  */
 
 // Classes
@@ -25,9 +26,12 @@ const router: Router = express.Router()
 
 // _init()
 function _init(): void {
-	// Enable localhost middleware
-	let localhost = require('../../middleware/localhost')
-	router.use(localhost)
+	// Retrieve localhost middleware
+	let localhostMiddleware = app.get('LOSS_MIDDLEWARE_LOCALHOST')
+
+	// Enable sub routes
+	let authorizationEndpoint: NodeRequire = require('./subroutes/authorization')
+	router.use("/_/authorization/", localhostMiddleware, authorizationEndpoint)
 }
 
 // Public Methods
