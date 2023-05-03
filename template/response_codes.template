@@ -1,0 +1,24 @@
+#############################
+############ 2XX ############
+#############################
+-- 200: OK
+	Successful, can optionally return data
+
+
+#############################
+############ 4XX ############
+#############################
+-- 400: Bad Request
+	Invalid body, header, or parameters
+
+-- 401: Unauthorized
+	Invalid authorization header or credentials
+
+#############################
+############ 5XX ############
+#############################
+-- 500: Internal Server Error
+	Generic error
+
+--503: Service Unavailable
+	API route down, database down, something else is down

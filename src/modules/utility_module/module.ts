@@ -1,29 +1,133 @@
 // Imports
-import { join } from 'path'
-import { readFileSync } from 'fs'
+import { join } from 'path';
+import { readFile } from 'fs/promises';
 
 // Docstring
 /**
  * Loopware Online Subsystem @ Utility Module
- * Provides helper functions and other things for every Loss service
+ * Provides custom helper/utility functions that are widely used
  */
 
 // Classes
+export class LossUtilityModule {
+	// Public Variables
+
+	// Private Variables
+
+	// Constructor
+
+	// Public Static Methods
+	public static async init(): Promise<LossUtilityModule> { return new LossUtilityModule(); }
+
+	// Public Inherited Methods
+	/**
+	 * Returns the HTTPS certificate data from the given directory
+	 * @param { string } directoryPath - The directory where the certificates are located
+	 * @returns { Promise<HTTPSCertificateData> } HTTPSCertificateData
+	 */
+	public async returnHTTPSCertificates(directoryPath: string = "./certs"): Promise<HTTPSCertificateData> {
+		// Save file paths
+		const keyPath: string = join(process.cwd(), directoryPath, "privatekey.pem")
+		const certPath: string = join(process.cwd(), directoryPath, "certificate.pem")
+
+		const keyData: string | void = await readFile(keyPath, { encoding: 'utf-8', }).catch((error: Error) => { throw error; })
+		const certData: string | void = await readFile(certPath, { encoding: 'utf-8', }).catch((error: Error) => { throw error; })
+
+		if (keyData && certData) { return ({ keyData: keyData, certData: certData, }); }
+		return { keyData: "", certData: "", }
+	}
+
+	/**
+	 * Validates a given object making sure `null` or `undefined` or not present
+	 * @param { object } object - The object to check
+	 * @returns { Promise<boolean> } `True` if the object is valid, `False` if the object is not valid
+	 */
+	public async validateObject(object: object): Promise<boolean> {
+		Object.entries(object).forEach(async ([key, value]) => { if (key === undefined || value === undefined) { return false; }; })
+		return true
+	}
+
+	/**
+	 * Compares two objects to see if they have the same structure
+	 * @description Note: This is VERY semi-inefficient and homophobic
+	 * @see https://stackoverflow.com/questions/14425568/interface-type-check-with-typescript
+	 * @param { object } test - The object to test 
+	 * @param { object } target - The object to match 
+	 * @returns { Promise<boolean> } Returns ``true`` if matching else ``false``
+	 */
+	public async isInstanceOf(test: object | any, target: object): Promise<boolean> {
+		// Check object keys length
+		if (Object.keys(test).length != Object.keys(target).length) { return false; }
+
+		// Check if the objects are valid
+		if (await !this.validateObject(test) || await !this.validateObject(target)) { return false; }
+
+		// Check individual types		
+		for (const [targetKey, targetValue] of Object.entries(target)) {
+			// Check if the test object has X key
+			if (!Object.hasOwn(test, targetKey)) { return false; }
+
+			// Begin value matching //
+
+			// Check if the target value is actually an object
+			if (typeof targetValue == 'object') {
+				// Check if the test value is also an object
+				if (typeof test[targetKey] != 'object') { return false; }
+
+				// Start recursively iterating
+				const testValue: any = test[targetKey]
+				const targetKeys: Array<string> = Object.keys(targetValue)
+
+				// Took me 5hrs...why is this not implemented natively
+				for (let index in targetKeys) {
+					const key: string = targetKeys[index]
+					let recursiveCount: number = 0
+					let targetCursor: any = targetValue[key]
+					let testCursor: any = testValue[key]
+
+					while (true) {
+						while (typeof targetCursor == 'object') {
+							if (typeof testCursor != 'object') { return false; }
+							targetCursor = (Object.values(targetCursor).length == 1) ? (Object.values(targetCursor)[0]) : (Object.values(targetCursor)[recursiveCount])
+							testCursor = (Object.values(testCursor).length == 1) ? (Object.values(testCursor)[0]) : (Object.values(testCursor)[recursiveCount])
+						}
+						// Check we aren't reading beyond scope
+						if (targetCursor === undefined) { break; }
+
+						// Check types
+						if (typeof testCursor != typeof targetCursor) { return false; }
+
+						// Reset cursors
+						targetCursor = targetValue[key]
+						testCursor = testValue[key]
+
+						// Increment count
+						recursiveCount++
+					}
+				}
+				// Looped through each key so we're good
+				return true
+			}
+			// Target value not an object just check types normally
+			if (typeof test[targetKey] != typeof targetValue) { return false; }
+		}
+		return false
+	}
+
+	// Private Static Methods
+
+	// Private Inherited Methods
+}
 
 // Enums
 
-// Interface
-export interface CertificateCredentials {
-	key: string,
-	cert: string,
+// Interfaces
+export interface HTTPSCertificateData {
+	keyData: string,
+	certData: string,
 }
 
 // Constants
-const DIRECTORY_NAME: string = "certs"
-const KEY_FILE_NAME: string = "privatekey.pem"
-const CERTIFICATE_FILE_NAME: string = "certificate.pem"
-
-// ENV Constants
 
 // Public Variables
 
@@ -32,52 +136,7 @@ const CERTIFICATE_FILE_NAME: string = "certificate.pem"
 // _init()
 
 // Public Methods
-/**
- * Returns the privatekey and certificate data
- * @returns { CertificateCredentials } The certificate credentials
- */
-export function returnCertificateCredentials(): CertificateCredentials {
-	let keyPath: string = join(process.cwd(), DIRECTORY_NAME, KEY_FILE_NAME)
-	let certPath: string = join(process.cwd(), DIRECTORY_NAME, CERTIFICATE_FILE_NAME)
 
-	let keyData: string = readFileSync(keyPath, 'utf8')
-	let certData: string = readFileSync(certPath, 'utf8')
-
-	return { key: keyData, cert: certData, }
-}
-
-/**
- * Serializes data for data transfer via `JSON.stringify`
- * @param { any } data - The data to serialize
- * @returns { string } The serialized data 
- */
-export function serializeData(data: any): string { return JSON.stringify(data); }
-
-/**
- * De-serializes data into a valid JS/TS object via `JSON.parse`
- * @param { any } data - The data to deserialize
- * @returns { any } The deserialized data
- */
-export function deserializeData(data: any): any { return JSON.parse(data); }
-
-/**
- * Returns the content length of a buffer string in bytes
- * @param { any } data - Data
- * @returns { number } The length in bytes
- */
-export function returnContentLength(data: any): number { return Buffer.byteLength(Buffer.from(serializeData(data))); }
-
-/**
- * Checks if a given object has a null/undefined key/value pair
- * @param { object } object - The object to check
- * @returns { boolean } True if an object has a undefined value, False if it contains none
- */
-export function objectNullCheck(object: object): boolean {
-	Object.entries(object).forEach(([key, value]) => { if (key === undefined || value === undefined) { return true; }; })
-	return false
-}
 // Private Methods
-
-// Callbacks
 
 // Run

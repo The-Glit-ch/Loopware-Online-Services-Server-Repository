@@ -1,22 +1,21 @@
 // Imports
-import express, { Router } from 'express'
+import { Route, RouteModules } from '../../common/classes/route';
+
+import { Express, Router } from 'express';
 
 // Docstring
 /**
  * Loopware Online Subsystem @ Localhost Middleware
- * Only allows for localhost to connect
+ * Custom middleware that only allows connection from localhost
  */
 
 // Classes
 
 // Enums
 
-// Interface
+// Interfaces
 
 // Constants
-const router: Router = express.Router()
-
-// ENV Constants
 
 // Public Variables
 
@@ -25,11 +24,20 @@ const router: Router = express.Router()
 // _init()
 
 // Public Methods
-router.use((req, res, next) => { if (req.ip !== "::ffff:127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden", }); return; }; next(); }) // Yes this is a one liner, no I'm not changing it
 
 // Private Methods
 
-// Callbacks
-
 // Run
-module.exports = router
+module.exports.init = async function (expressApp: Express, loadedRouteModules: RouteModules): Promise<Router> {
+	// Create a new route instance
+	const localhostMiddleware: Route = await Route.init(expressApp, loadedRouteModules)
+
+	// Get references
+	const router: Router = await localhostMiddleware.getRouter()
+
+	// Set middleware
+	router.use((req, res, next) => { if (req.ip !== "::ffff:127.0.0.1") { res.status(403).json({ code: 403, message: "Forbidden", }); return; }; next(); }) // Yes this is a one liner, no I'm not changing it
+
+	// Return router
+	return router
+}

@@ -1,0 +1,28 @@
+# /**
+# * Loopware Online Subsystem @ Space Guard Database
+# * Creates a MongoDB instance for the Space Guard service
+# */
+
+services:
+  MongoDBSpaceGuardStorage:
+    image: mongo:6.0
+    container_name: loss-mongodb-space-guard-storage
+    command: "mongod --port 36201"
+    environment:
+    # It is HIGHLY recommended to change the default username and password
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - type: volume
+        source: lossSpaceGuardServiceStorageVolume
+        target: /lossSpaceGuardServiceStorageVolume
+        read_only: false
+        volume:
+          nocopy: false
+    ports:
+      - "36201:36201"
+    restart: unless-stopped
+
+volumes:
+  lossSpaceGuardServiceStorageVolume:
+    name: lossSpaceGuardServiceStorageVolume

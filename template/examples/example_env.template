@@ -1,0 +1,9 @@
+# Naming template on how environment variables should be written. If you want a .env example for development please refer to ./env/example.env
+# Environment variables should be labeled as so
+
+ENV_[FUNCTION]_[SYSTEM/USE]_[IDENTIFIER]
+
+Examples: 
+		ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_CONNECTION_URL="mongodb://user:password@localhost:port/databaseName"
+		ENV_COSMIC_STORAGE_DATABASE_DATASTORE_STORAGE_CONNECTION_URL="mongodb://user:password@localhost:port/databaseName"
+		ENV_SERVER_CONFIGURATION_CERTIFICATE_DECRYPTION_PASSPHRASE="my passphrase"

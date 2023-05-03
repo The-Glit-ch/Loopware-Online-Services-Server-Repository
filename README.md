@@ -1,46 +1,34 @@
-# Loopware Online Subsystem(Loss) || Server Repository
-An all-in-one solution for handling anything "cloud" related in your games/applications. Although this was originally made for the Godot engine this *should* work with any other application as long as they support HTTP(S) and UDP
+# Loopware Online Subsystem || Server Repository
+#### ⚠️ Warning ⚠️ : Project is under a heavy rewrite which aims to squash many bugs, improve performance, security, and stability, and make further development easier
+Loopware Online Subsystem, also known as ***Loss***, is an all-in-on solution for handling cloud and online related features in your applications and games
 
 ## Features
 <details>
-<summary> Authentication </summary>
-- User/Client Authorization via JWT
+<summary> Space Guard Service </summary>
+- A simple and easy to use service that allows for player authentication with the service
 </details>
 
 <details>
-<summary> Datastore Service </summary>
-- Fully manageable Datastore service built with MongoDB
-<br>
-Allows for Cloud Saves, Leaderboards, Asset Streaming, and more
+<summary> Cosmic Storage </summary>
+- A robust and configurable solution for storing player data, leader board statistics, save games and downloading external resources
 </details>
 
 <details>
-<summary> Net/Live Service </summary>
-- VoIP
-<br>
-- [UDP Punchthrough](https://en.wikipedia.org/wiki/UDP_hole_punching) via custom [TURN Server](https://en.wikipedia.org/wiki/Traversal_Using_Relays_around_NAT)
-<br>
-- Game/App Analytics
+<summary> HyperNet </summary>
+- A custom built TURN server that allows for multiplayer without needing any centralized servers
 </details>
 
+<details>
+<summary> Ground Control </summary>
+- A custom built communication solution for VoIP and text based chat
+</details>
 
-## Current Features
-* Authorization System
-	- User/Client Authorization (DONE) ✅
+---
 
-* Datastore Service
-	- Datastore (DONE) ✅
-	- Leaderboard (DONE) ✅
-	- Asset Streaming (DONE) ✅
-
-* Net/Live Service
-	- VoIP (ON-HOLD) ⚠️
-	- UDP Hole Punch (DONE) ✅
-	- Game/App Analytics (DONE but not implemented fully) ⚠️
-
-* Other
-	- Godot Plugin/SDK (Working) 👨‍💻
-	- Dashboard (ON-HOLD) ⚠️
-		- CLI (DONE) ✅
+## Integrations
+<details>
+<summary>Official Supported</summary>
+- Godot Engine
+</details>
 
 # THIS IS NOT DONE. DON'T USE IN PRODUCTION (yet.)

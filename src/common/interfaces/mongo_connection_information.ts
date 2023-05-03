@@ -1,25 +1,18 @@
 // Imports
+import { MongoClient } from 'mongodb';
 
 // Docstring
 
 // Enums
 
 // Interfaces
+export interface MongoConnectionInformation {
+	client: MongoClient,
+	databaseName: string,
+	isConnected: boolean,
+}
 
 // Classes
-	// Public Variables
-
-	// Private Variables
-
-	// Constructor
-
-	// Public Static Methods
-
-	// Public Inherited Methods
-
-	// Private Static Methods
-
-	// Private Inherited Methods
 
 // Constants
 

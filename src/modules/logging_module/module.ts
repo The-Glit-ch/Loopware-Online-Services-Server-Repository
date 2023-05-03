@@ -1,6 +1,6 @@
 // Imports
 import { join } from 'path'
-import { writeFile, existsSync, mkdir } from 'fs'
+import { access, constants, mkdir, writeFile } from 'fs/promises'
 
 // Docstring
 /**
@@ -9,111 +9,139 @@ import { writeFile, existsSync, mkdir } from 'fs'
  */
 
 // Classes
+export class LossLoggingModule {
+	// Private Variables
+	private _loggingFileName: string
+	private _loggingLocale: string
+	private _currentLoggingDirectory: string
+
+	// Constructor	
+	constructor(loggingFileName: string, loggingLocale: string, currentLoggingDirectory: string) {
+		// Set internal variables
+		this._loggingFileName = loggingFileName
+		this._loggingLocale = loggingLocale
+		this._currentLoggingDirectory = currentLoggingDirectory
+	}
+
+	// Public Static Methods
+	/**
+	 * Initializes and returns a new `LossLoggingModule` instance
+	 * @param { string } directoryPath - The path where logs should be stored
+	 * @param { string } fileName - The file name of the log file
+	 * @param { string } locale - The locale of the logging text 
+	 * @returns { Promise<LossLoggingModule> } Promise
+	 */
+	public static async init(directoryPath: string = "./logs", fileName: string = "log.log", locale: string = "eu"): Promise<LossLoggingModule> {
+		// Set the current logging directory
+		const currentLoggingDirectory: string = join(process.cwd(), directoryPath)
+
+		// Create logging directory
+		await this._createLoggingDirectory(currentLoggingDirectory)
+
+		// Return a new instance
+		return new LossLoggingModule(fileName, locale, currentLoggingDirectory)
+	}
+
+	// Public Instanced Methods
+	/**
+	 * Logs a message to stdout and to a log file
+	 * @param { Array<string> } messages - The message(s) to log
+	 * @returns { Promise<void> } Promise 
+	 */
+	public async log(...messages: Array<string>): Promise<void> {
+		const logDate: string = new Date().toLocaleDateString(this._loggingLocale)
+		const logTime: string = new Date().toLocaleTimeString(this._loggingLocale)
+		const logPrefix: string = `[LOG @ ${logTime} - ${logDate}]`
+		let logSuffix: string = ""
+		messages.forEach((logMessage: string) => { logSuffix = logSuffix + logMessage + " " })
+		const fullLogMessage: string = `${logPrefix} ${logSuffix}`
+
+		// Log to console
+		console.log(fullLogMessage)
+
+		// Write to file
+		this._writeToLogFile(fullLogMessage)
+		return
+	}
+
+	/**
+	 * Logs a warning message to stdout and to a log file
+	 * @param { Array<string> } messages - The message(s) to log
+	 * @returns { Promise<void> } Promise 
+	 */
+	public async wrn(...messages: Array<string>): Promise<void> {
+		const logDate: string = new Date().toLocaleDateString(this._loggingLocale)
+		const logTime: string = new Date().toLocaleTimeString(this._loggingLocale)
+		const logPrefix: string = `[WRN @ ${logTime} - ${logDate}]`
+		let logSuffix: string = ""
+		messages.forEach((logMessage: string) => { logSuffix = logSuffix + logMessage + " " })
+		const fullLogMessage: string = `${logPrefix} ${logSuffix}`
+
+		// Log to console
+		console.log(fullLogMessage)
+
+		// Write to file
+		this._writeToLogFile(fullLogMessage)
+		return
+	}
+
+	/**
+	 * Logs an error message to stdout and to a log file
+	 * @param { Array<string> } messages - The message(s) to log
+	 * @returns { Promise<void> } Promise 
+	 */
+	public async err(...messages: Array<string>): Promise<void> {
+		const logDate: string = new Date().toLocaleDateString(this._loggingLocale)
+		const logTime: string = new Date().toLocaleTimeString(this._loggingLocale)
+		const logPrefix: string = `[ERR @ ${logTime} - ${logDate}]`
+		let logSuffix: string = ""
+		messages.forEach((logMessage: string) => { logSuffix = logSuffix + logMessage + " " })
+		const fullLogMessage: string = `${logPrefix} ${logSuffix}`
+
+		// Log to console
+		console.log(fullLogMessage)
+
+		// Write to file
+		this._writeToLogFile(fullLogMessage)
+		return
+	}
+
+	// Private Static Methods
+	/**
+	 * Creates a logging directory for log files
+	 * @param { string } filePath - The path of the logging directory
+	 * @returns { void } void
+	 */
+	private static async _createLoggingDirectory(filePath: string): Promise<void> {
+		return access(filePath, constants.F_OK).catch((_: Error) => { mkdir(filePath).catch((error: Error) => { console.error(`Error while making logging directory | ${error}`); }); })
+	}
+
+	// Private Instanced Methods
+	/**
+	 * Writes a log message to the log file
+	 * @param { string } logMessage - The message to write
+	 * @returns { void } void
+	 */
+	private async _writeToLogFile(logMessage: string): Promise<void> {
+		const filePath: string = join(this._currentLoggingDirectory, this._loggingFileName)
+		return writeFile(filePath, logMessage + "\n", { flag: 'a+', }).catch((error: Error) => { console.error(`Error while writing log to file | ${error}`); })
+	}
+}
 
 // Enums
 
-// Interface
+// Interfaces
 
 // Constants
-const LOGGING_DIRECTORY_PATH: string = "./logs" // ./build/logs
-const LOGGING_FILE_NAME: string = "logs.log"
-const LOGGING_LOCALE: string = "eu"
-
-// ENV Constants
 
 // Public Variables
 
 // Private Variables
 
 // _init()
-function _init(): void { _createLoggingDirectory(); }
 
 // Public Methods
-/**
- * Logs a message to console and writes it to the log file
- * @param { Array<string> } logMessage - The messages to log
- * @returns { void } void
- */
-export function log(...logMessages: Array<string>): void {
-	// This is dirty but eh whatever
-	let logDate: string = new Date().toLocaleDateString(LOGGING_LOCALE)
-	let logTime: string = new Date().toLocaleTimeString(LOGGING_LOCALE)
-	let logPrefix: string = `[LOG @ ${logDate} - ${logTime}]`
-	let logSuffix: string = ""
-	logMessages.forEach((message: string) => { logSuffix = logSuffix + message + " " })
-	let fullLogMessage: string = `${logPrefix} ${logSuffix}`
-
-	// Log to console
-	console.log(fullLogMessage)
-
-	// Write to file
-	_writeToLogFile(fullLogMessage)
-}
-
-/**
- * Logs a message to console and writes it to the log file
- * @param { Array<string> } logMessage - The messages to log
- * @returns { void } void
- */
-export function wrn(...logMessages: Array<string>): void {
-	// This is dirty but eh whatever
-	let logDate: string = new Date().toLocaleDateString(LOGGING_LOCALE)
-	let logTime: string = new Date().toLocaleTimeString(LOGGING_LOCALE)
-	let logPrefix: string = `[WRN @ ${logDate} - ${logTime}]`
-	let logSuffix: string = ""
-	logMessages.forEach((message: string) => { logSuffix = logSuffix + message + " " })
-	let fullLogMessage: string = `${logPrefix} ${logSuffix}`
-
-	// Log to console
-	console.log(fullLogMessage)
-
-	// Write to file
-	_writeToLogFile(fullLogMessage)
-}
-
-/**
- * Logs a message to console and writes it to the log file
- * @param { Array<string> } logMessage - The messages to log
- * @returns { void } void
- */
-export function err(...logMessages: Array<string>): void {
-	// This is dirty but eh whatever
-	let logDate: string = new Date().toLocaleDateString(LOGGING_LOCALE)
-	let logTime: string = new Date().toLocaleTimeString(LOGGING_LOCALE)
-	let logPrefix: string = `[ERR @ ${logDate} - ${logTime}]`
-	let logSuffix: string = ""
-	logMessages.forEach((message: string) => { logSuffix = logSuffix + message + " " })
-	let fullLogMessage: string = `${logPrefix} ${logSuffix}`
-
-	// Log to console
-	console.log(fullLogMessage)
-
-	// Write to file
-	_writeToLogFile(fullLogMessage)
-}
 
 // Private Methods
-/**
- * Creates a logging directory if not already created
- * @returns { void } void
- */
-function _createLoggingDirectory(): void {
-	let logDir: string = join(process.cwd(), LOGGING_DIRECTORY_PATH)
-	if (existsSync(logDir)) { return; }
-	mkdir(logDir, (error) => { if (error) { console.error(`Failed to create logging directory | ${error} `); return; } })
-}
-
-/**
- * Writes a log message to file
- * @param { string } logMessage - The message to write
- * @returns { void } void
- */
-function _writeToLogFile(logMessage: string): void {
-	let filePath: string = join(process.cwd(), LOGGING_DIRECTORY_PATH, LOGGING_FILE_NAME)
-	writeFile(filePath, logMessage + "\n", { flag: 'a+' }, (error) => { if (error) { console.error(`Error while writing to log file | ${error}`); return; } })
-}
-
-// Callbacks
 
 // Run
-_init()

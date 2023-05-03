@@ -5,7 +5,7 @@ import { Express, Router } from 'express';
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Configuration Endpoint
+ * Loopware Online Subsystem @ Space Guard Service Endpoint
  */
 
 // Classes
@@ -29,14 +29,14 @@ import { Express, Router } from 'express';
 // Run
 module.exports.init = async function (expressApp: Express, loadedRouteModules: RouteModules): Promise<Router> {
 	// Create a new route instance
-	const configurationRoute: Route = await Route.init(expressApp, loadedRouteModules)
+	const spaceguardRoute: Route = await Route.init(expressApp, loadedRouteModules)
 
 	// Get references
-	const router: Router = await configurationRoute.getRouter()
+	const router: Router = await spaceguardRoute.getRouter()
 
 	// Set routes
-	const authorizationRoute: Router = await require('./routes/spaceguard').init(expressApp, loadedRouteModules)
-	router.use("/_/space-guard/", authorizationRoute)
+	const authorizationRoute: Router = await require('./routes/authorization').init(expressApp, loadedRouteModules)
+	router.use("/", authorizationRoute)
 
 	// Return router
 	return router
