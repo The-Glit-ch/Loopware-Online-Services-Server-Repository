@@ -114,6 +114,18 @@ export class LossUtilityModule {
 		return false
 	}
 
+	/**
+	 * Returns a token from a given authorization header
+	 * @param { string } authorizationHeader - The authorization header
+	 * @param { boolean} isDual - Does the header contain dual tokens? 
+	 * @param { string } delimiter - Where should the token be split (applies for isDual) 
+	 * @returns { Promise<Array<string> | string> } Promise
+	 */
+	public async returnToken(authorizationHeader: string, isDual: boolean = false, delimiter: string = ":"): Promise<Array<string> | string> {
+		if (isDual){ return authorizationHeader.split(" ")[1].split(delimiter); }
+		return authorizationHeader.split(" ")[1]
+	}
+
 	// Private Static Methods
 
 	// Private Inherited Methods

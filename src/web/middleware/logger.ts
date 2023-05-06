@@ -7,7 +7,7 @@ import { Express, Router } from 'express';
 // Docstring
 /**
  * Loopware Online Subsystem @ Logging Middleware
- * Logs any connection coming into Loss
+ * Custom middleware that logs any connection coming into Loss
  */
 
 // Classes

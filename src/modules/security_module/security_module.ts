@@ -1,6 +1,6 @@
 // Imports
 import { createHash, randomBytes } from 'crypto';
-import { SignOptions, sign } from 'jsonwebtoken';
+import { SignOptions, sign, verify } from 'jsonwebtoken';
 
 // Docstring
 /**
@@ -36,6 +36,13 @@ export class LossSecurityModule {
 	public static async init(): Promise<LossSecurityModule> { return new LossSecurityModule(); }
 
 	// Public Inherited Methods
+	/**
+	 * Generates a new client token object
+	 * @param { string } appName - The app name for the client token 
+	 * @param { ClientAccessScopes } clientAccessScopes - The access scopes 
+	 * @param { number } tokenSize - The size of the token `(Default: 64) `
+	 * @returns { Promise<ClientTokenData> } ClientTokenData
+	 */
 	public async generateNewClientToken(appName: string, clientAccessScopes: ClientAccessScopes, tokenSize: number = 64): Promise<ClientTokenData> {
 		// Generate a new client token
 		const clientToken: string = randomBytes(tokenSize).toString('base64')
@@ -52,7 +59,22 @@ export class LossSecurityModule {
 		return { appName: appName, clientToken: clientToken, serverAccessToken: serverAccessToken, serverRefreshToken: serverRefreshToken, clientAccessScopes: clientAccessScopes, }
 	}
 
+	/**
+	 * Generates a new JsonWebToken
+	 * @param { object } payload - The payload for the JWT 
+	 * @param { string} key - The key to be encoded with 
+	 * @param { SignOptions | undefined } options - Additional options for the JWT
+	 * @returns { Promise<string> } JWT
+	 */
 	public async generateJsonWebToken(payload: object, key: string, options?: SignOptions): Promise<string> { return sign(payload, key, options || {}); }
+
+	/**
+	 * Decodes a JsonWebToken
+	 * @param { string } token - The token to decode 
+	 * @param { string} key - The key to decode with 
+	 * @returns { Promise<any> } Any
+	 */
+	public async decodeJsonWebToken(token: string, key: string): Promise<any> { return verify(token, key); }
 
 	// Private Static Methods
 

@@ -47,13 +47,16 @@ async function _init(): Promise<void> {
 	app.set('env', process.env.NODE_ENV)
 	app.set('LOSS_NODE_ENV', process.env.NODE_ENV)
 	app.set('LOSS_ENV_SERVER_CONFIGURATION_LISTENING_PORT', process.env.ENV_SERVER_CONFIGURATION_LISTENING_PORT)
+	app.set(`LOSS_ENV_SERVER_CONFIGURATION_TOKEN_EXPIRATION_TIME`, process.env.ENV_SERVER_CONFIGURATION_TOKEN_EXPIRATION_TIME)
 	app.set('LOSS_ENV_SERVER_CONFIGURATION_CERTIFICATE_DECRYPTION_PASSPHRASE', process.env.ENV_SERVER_CONFIGURATION_CERTIFICATE_DECRYPTION_PASSPHRASE)
+	app.set('LOSS_ENV_SPACE_GUARD_DATABASE_LIVE_TOKEN_STORAGE_COLLECTION_NAME', process.env.ENV_SPACE_GUARD_DATABASE_LIVE_TOKEN_STORAGE_COLLECTION_NAME)
+	app.set('LOSS_ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME', process.env.ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 
 	// Module instancing
 	const lossLoggingModule: LossLoggingModule = await LossLoggingModule.init();
 	const lossUtilityModule: LossUtilityModule = await LossUtilityModule.init();
 	const lossSecurityModule: LossSecurityModule = await LossSecurityModule.init();
-	const allModules: object = { lossLoggingModule: lossLoggingModule, lossSecurityModule: lossSecurityModule, LossUtilityModule: lossUtilityModule, }
+	const allModules: object = { lossLoggingModule: lossLoggingModule, lossSecurityModule: lossSecurityModule, lossUtilityModule: lossUtilityModule, }
 
 	// Database connections
 	let connectedMongoDatabases: Array<MongoConnectionInformation> = []
@@ -65,7 +68,7 @@ async function _init(): Promise<void> {
 	]
 
 	await Promise.all(toBeConnectedDatabases)
-		.catch((error: Error) => { lossLoggingModule.err(`Error while connecting to database | ${error}`); return; })
+		.catch((error: Error) => { lossLoggingModule.err(`[INIT] Error while connecting to database | ${error}`); return; })
 		.then((mongoClients: Array<MongoClient> | void) => {
 			if (!mongoClients) { return; }
 			mongoClients.forEach((client: MongoClient) => {
@@ -101,14 +104,17 @@ async function _init(): Promise<void> {
 	// Middleware
 	const loggingMiddleware: Router = await require('./middleware/logger').init(app, allModules)
 	const localhostMiddleware: Router = await require('./middleware/localhost').init(app, allModules)
+	const authorizationMiddleware: Router = await require('./middleware/authorization').init(app, allModules)
 	app.use(loggingMiddleware)
 	app.use(express.json())
 
 	// Routes
-	const spaceguardServiceRoute: Router = await require('./routes/space-guard-service/spaceguard').init(app, allModules)
+	const cosmicstorageRoute: Router = await require('./routes/cosmic-storage/cosmicstorage').init(app, allModules)
 	const configurationRoute: Router = await require('./routes/configuration/configuration').init(app, allModules)
+	const spaceguardServiceRoute: Router = await require('./routes/space-guard-service/spaceguard').init(app, allModules)
 	app.use('/space-guard/api/v1/', spaceguardServiceRoute)
 	app.use('/configuration/api/v1/', localhostMiddleware, configurationRoute)
+	app.use('/cosmic-storage/api/v1/', authorizationMiddleware, cosmicstorageRoute)
 
 	// Certificate retrieval
 	let certificateData: HTTPSCertificateData = { keyData: "", certData: "", }
