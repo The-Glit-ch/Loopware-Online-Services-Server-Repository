@@ -14,11 +14,17 @@
 -- 401: Unauthorized
 	Invalid authorization header or credentials
 
+-- 404: Not Found
+	Resource was not found
+
 #############################
 ############ 5XX ############
 #############################
 -- 500: Internal Server Error
 	Generic error
 
---503: Service Unavailable
+-- 501: Not Implemented
+	Not an implemented function or service
+
+-- 503: Service Unavailable
 	API route down, database down, something else is down

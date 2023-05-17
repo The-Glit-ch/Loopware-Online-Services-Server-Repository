@@ -5,14 +5,15 @@ import { Express, Router } from 'express';
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Space Guard Service Endpoint
+ * Loopware Online Subsystem @ Space Guard Parent Endpoint
+ * Parent endpoint for the Space Guard service
  */
-
-// Classes
 
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 

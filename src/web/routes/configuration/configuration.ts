@@ -5,14 +5,15 @@ import { Express, Router } from 'express';
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Configuration Endpoint
+ * Loopware Online Subsystem @ Configuration Parent Endpoint
+ * Parent endpoint for the configuration service
  */
-
-// Classes
 
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 

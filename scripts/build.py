@@ -4,7 +4,7 @@ from subprocess import PIPE, CalledProcessError
 from typing import Final
 
 # Docstring
-# Loopware Online Subsytem @ Automated build script
+# Loopware Online Subsystem @ Automated build script
 # Automates the process of building and running Loss locally
 
 # Classes
@@ -41,7 +41,7 @@ def main() -> None:
 	os.chdir("..")
 
 	# Copy external files
-	print("Copying requires files")
+	print("Copying required files")
 	_system_copy("./src/package-lock.json", "./build")
 	_system_copy("./src/package.json", "./build")
 	_system_copy("./env/.env", "./build")

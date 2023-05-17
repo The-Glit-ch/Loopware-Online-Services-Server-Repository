@@ -2,7 +2,7 @@
 import { Route, RouteModules } from '../../common/classes/route';
 import { LossUtilityModule } from '../../modules/utility_module/module';
 import { LossLoggingModule } from '../../modules/logging_module/module';
-import { LossSecurityModule } from '../../modules/security_module/security_module';
+import { LossSecurityModule } from '../../modules/security_module/module';
 import { MongoConnectionInformation } from '../../common/interfaces/mongo_connection_information';
 
 import { Collection, Document, MongoClient, WithId } from 'mongodb';
@@ -25,12 +25,12 @@ import { Express, Router, Request, Response, NextFunction } from 'express';
 // Public Variables
 
 // Private Variables
-let _clientTokenStorageCollectionName: string
-let _liveTokenStorageCollectionName: string
+let _expressAppReference: Express
 let _lossLoggingModule: LossLoggingModule
 let _lossUtilityModule: LossUtilityModule
 let _lossSecurityModule: LossSecurityModule
-let _expressAppReference: Express
+let _liveTokenStorageCollectionName: string
+let _clientTokenStorageCollectionName: string
 
 // _init()
 
@@ -70,13 +70,13 @@ async function authorizationMiddlewareFunc(req: Request, res: Response, next: Ne
 	// Check if the client token is valid
 	const foundClientToken: WithId<Document> | void | null = await clientTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while fetching data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while fetching data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}`)
 
 	// Check if the client token was found
 	if (!foundClientToken) { res.status(401).json({ code: 401, message: "Client token invalid", }); return; }
@@ -91,13 +91,13 @@ async function authorizationMiddlewareFunc(req: Request, res: Response, next: Ne
 	// Check if the access token is valid
 	const foundAccessToken: WithId<Document> | void | null = await liveTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while writing data to [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while writing data to ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}`)
 
 	// Check if the access token was found
 	if (!foundAccessToken) { res.status(401).json({ code: 401, message: "Access token invalid", }); return; }

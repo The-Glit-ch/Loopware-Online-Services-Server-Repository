@@ -2,7 +2,7 @@
 import { Route, RouteModules } from '../../../../common/classes/route';
 import { LossUtilityModule } from '../../../../modules/utility_module/module';
 import { LossLoggingModule } from '../../../../modules/logging_module/module';
-import { ClientTokenData, LossSecurityModule } from '../../../../modules/security_module/security_module';
+import { ClientTokenData, LossSecurityModule } from '../../../../modules/security_module/module';
 import { MongoConnectionInformation } from '../../../../common/interfaces/mongo_connection_information';
 
 import { Collection, MongoClient } from 'mongodb';
@@ -10,25 +10,25 @@ import { Express, Router, Request, Response } from 'express';
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Configuration/Authorization Endpoint
- * Handles any live configurations done to the SpaceGuard service
+ * Loopware Online Subsystem @ Configuration/Space Guard Endpoint
+ * Handles any live configurations done to the Space Guard service
  */
-
-// Classes
 
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 
 // Public Variables
 
 // Private Variables
+let _expressAppReference: Express
 let _lossLoggingModule: LossLoggingModule
 let _lossUtilityModule: LossUtilityModule
 let _lossSecurityModule: LossSecurityModule
-let _expressAppReference: Express
 
 // _init()
 
@@ -45,7 +45,7 @@ async function newClientToken(req: Request, res: Response): Promise<void> {
 	const requestBody: object | any = req.body
 
 	// Check if the body is empty
-	if (Object.keys(requestBody).length == 0) { res.status(400).json({ code: 400, message: "Invalid body", }); return; }
+	if (Object.keys(requestBody).length === 0) { res.status(400).json({ code: 400, message: "Invalid body", }); return; }
 
 	// Store the new client token data
 	const clientRegistrationData: object | any = { appName: requestBody.appName, clientAccessScopes: requestBody.clientAccessScopes, }

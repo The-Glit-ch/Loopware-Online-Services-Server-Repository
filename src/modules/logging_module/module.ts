@@ -8,6 +8,10 @@ import { access, constants, mkdir, writeFile } from 'fs/promises'
  * Simple logging module used by every Loss service
  */
 
+// Enums
+
+// Interfaces
+
 // Classes
 export class LossLoggingModule {
 	// Private Variables
@@ -127,10 +131,6 @@ export class LossLoggingModule {
 		return writeFile(filePath, logMessage + "\n", { flag: 'a+', }).catch((error: Error) => { console.error(`Error while writing log to file | ${error}`); })
 	}
 }
-
-// Enums
-
-// Interfaces
 
 // Constants
 

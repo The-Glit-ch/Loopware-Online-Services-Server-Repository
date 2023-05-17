@@ -1,8 +1,9 @@
 // Imports
+import { join } from 'path';
 import { createServer } from 'https';
 
 import { LossLoggingModule } from '../modules/logging_module/module';
-import { LossSecurityModule } from '../modules/security_module/security_module';
+import { LossSecurityModule } from '../modules/security_module/module';
 import { MongoConnectionInformation } from '../common/interfaces/mongo_connection_information';
 import { LossUtilityModule, HTTPSCertificateData } from '../modules/utility_module/module';
 
@@ -16,11 +17,11 @@ import express, { Express, Router } from 'express';
  * to the current runtime
  */
 
-// Classes
-
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 export const app: Express = express()
@@ -47,9 +48,10 @@ async function _init(): Promise<void> {
 	app.set('env', process.env.NODE_ENV)
 	app.set('LOSS_NODE_ENV', process.env.NODE_ENV)
 	app.set('LOSS_ENV_SERVER_CONFIGURATION_LISTENING_PORT', process.env.ENV_SERVER_CONFIGURATION_LISTENING_PORT)
-	app.set(`LOSS_ENV_SERVER_CONFIGURATION_TOKEN_EXPIRATION_TIME`, process.env.ENV_SERVER_CONFIGURATION_TOKEN_EXPIRATION_TIME)
+	app.set(`LOSS_ENV_SPACE_GUARD_CONFIGURATION_TOKEN_EXPIRATION_TIME`, process.env.ENV_SPACE_GUARD_CONFIGURATION_TOKEN_EXPIRATION_TIME)
 	app.set('LOSS_ENV_SERVER_CONFIGURATION_CERTIFICATE_DECRYPTION_PASSPHRASE', process.env.ENV_SERVER_CONFIGURATION_CERTIFICATE_DECRYPTION_PASSPHRASE)
 	app.set('LOSS_ENV_SPACE_GUARD_DATABASE_LIVE_TOKEN_STORAGE_COLLECTION_NAME', process.env.ENV_SPACE_GUARD_DATABASE_LIVE_TOKEN_STORAGE_COLLECTION_NAME)
+	app.set(`LOSS_ENV_COSMIC_STORAGE_CONFIGURATION_ASSET_STREAMING_FOLDER_PATH`, process.env.ENV_COSMIC_STORAGE_CONFIGURATION_ASSET_STREAMING_FOLDER_PATH)
 	app.set('LOSS_ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME', process.env.ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME)
 
 	// Module instancing
@@ -57,6 +59,12 @@ async function _init(): Promise<void> {
 	const lossUtilityModule: LossUtilityModule = await LossUtilityModule.init();
 	const lossSecurityModule: LossSecurityModule = await LossSecurityModule.init();
 	const allModules: object = { lossLoggingModule: lossLoggingModule, lossSecurityModule: lossSecurityModule, lossUtilityModule: lossUtilityModule, }
+
+	// Service configuration
+	let cosmicStorageAssetStreamingFilepath: string = app.get('LOSS_ENV_COSMIC_STORAGE_CONFIGURATION_ASSET_STREAMING_FOLDER_PATH')
+	if (!await lossUtilityModule.filePathExists(cosmicStorageAssetStreamingFilepath)) {
+		lossLoggingModule.wrn(`Cosmic Storage asset streaming filepath "${join(process.cwd(), cosmicStorageAssetStreamingFilepath)}" does not exist`)
+	}
 
 	// Database connections
 	let connectedMongoDatabases: Array<MongoConnectionInformation> = []
@@ -128,7 +136,7 @@ async function _init(): Promise<void> {
 	const listenOptions: object | any = { key: certificateData.keyData, cert: certificateData.certData, passphrase: PASSPHRASE, }
 
 	// Listen
-	if (listenOptions.key != "" && listenOptions.cert != "") { createServer(listenOptions, app).listen(PORT, () => { lossLoggingModule.log(`Loopware Online Subsystem Server ${VERSION_STRING} is now online | Listening on port ${PORT}`); }); }
+	if (listenOptions.key !== "" && listenOptions.cert !== "") { createServer(listenOptions, app).listen(PORT, () => { lossLoggingModule.log(`Loopware Online Subsystem Server ${VERSION_STRING} is now online | Listening on port ${PORT}`); }); }
 	else { app.listen(PORT, () => { lossLoggingModule.wrn(`Warning: Running in HTTP`); lossLoggingModule.log(`Loopware Online Subsystem Server ${VERSION_STRING} is now online | Listening on port ${PORT}`); }); }
 }
 

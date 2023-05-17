@@ -10,11 +10,11 @@ import { Express, Router } from 'express';
  * Custom middleware that logs any connection coming into Loss
  */
 
-// Classes
-
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 

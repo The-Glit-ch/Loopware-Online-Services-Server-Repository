@@ -9,11 +9,11 @@ import { Express, Router } from 'express';
  * Custom middleware that only allows connection from localhost
  */
 
-// Classes
-
 // Enums
 
 // Interfaces
+
+// Classes
 
 // Constants
 

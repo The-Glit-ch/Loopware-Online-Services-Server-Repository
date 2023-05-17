@@ -2,7 +2,7 @@
 import { Route, RouteModules } from '../../../../common/classes/route';
 import { LossUtilityModule } from '../../../../modules/utility_module/module';
 import { LossLoggingModule } from '../../../../modules/logging_module/module';
-import { LossSecurityModule } from '../../../../modules/security_module/security_module';
+import { LossSecurityModule } from '../../../../modules/security_module/module';
 import { MongoConnectionInformation } from '../../../../common/interfaces/mongo_connection_information';
 
 import { Express, Router, Request, Response } from 'express';
@@ -25,13 +25,13 @@ import { Collection, Document, MongoClient, WithId, ModifyResult } from 'mongodb
 // Public Variables
 
 // Private Variables
-let _clientTokenStorageCollectionName: string
-let _liveTokenStorageCollectionName: string
-let _tokenExpirationTime: string
+let _expressAppReference: Express
 let _lossLoggingModule: LossLoggingModule
 let _lossUtilityModule: LossUtilityModule
 let _lossSecurityModule: LossSecurityModule
-let _expressAppReference: Express
+let _tokenExpirationTime: string
+let _liveTokenStorageCollectionName: string
+let _clientTokenStorageCollectionName: string
 
 // _init()
 
@@ -77,13 +77,13 @@ async function authorizeUser(req: Request, res: Response): Promise<void> {
 	// Search for client token
 	const foundClientToken: WithId<Document> | void | null = await clientTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while fetching data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while fetching data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}`)
 
 	// Check if the client token was found
 	if (!foundClientToken) { res.status(401).json({ code: 401, message: "Client token invalid", }); return; }
@@ -103,13 +103,13 @@ async function authorizeUser(req: Request, res: Response): Promise<void> {
 	const writeData: object = { refreshToken: jwtRefreshToken, accessToken: jwtAccessToken, }
 	await liveTokenStorageCollection.insertOne(writeData)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while writing data to [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while writing data to ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully wrote data to [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully wrote data to ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}`)
 
 	// Send response
 	res.status(200).json({ code: 200, message: "Ok", data: { jwtAccessToken: jwtAccessToken, jwtRefreshToken: jwtRefreshToken, }, })
@@ -159,13 +159,13 @@ async function refreshUser(req: Request, res: Response): Promise<void> {
 	// Check if the client token is valid
 	const foundClientToken: WithId<Document> | void | null = await clientTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while fetching data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while fetching data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}`)
 
 	// Check if the client token was found
 	if (!foundClientToken) { res.status(401).json({ code: 401, message: "Client token invalid", }); return; }
@@ -177,13 +177,13 @@ async function refreshUser(req: Request, res: Response): Promise<void> {
 	// Check if the refresh token is valid
 	const foundRefreshToken: WithId<Document> | void | null = await liveTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while writing data to [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while writing data to ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}`)
 
 	// Check if the refresh token was found
 	if (!foundRefreshToken) { res.status(401).json({ code: 401, message: "Refresh token invalid", }); return; }
@@ -202,18 +202,18 @@ async function refreshUser(req: Request, res: Response): Promise<void> {
 	fetchQuery = { refreshToken: jwtRefreshToken, }
 
 	// Update live token database
-	const wasUpdatedSuccessfully: ModifyResult<Document> | void | null  = await liveTokenStorageCollection.findOneAndUpdate(fetchQuery, updateQuery)
+	const wasUpdatedSuccessfully: ModifyResult<Document> | void | null = await liveTokenStorageCollection.findOneAndUpdate(fetchQuery, updateQuery)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while finding and updating data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}] | ${error}`)
-			res.status(500).json({code: 500, message: "Server error", })
+			_lossLoggingModule.err(`Error while finding and updating data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName} | ${error}`)
+			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
-	
+
 	// Log
-	_lossLoggingModule.log(`Successfully found and updated data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully found and updated data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}`)
 
 	// Check if the update was successful
-	if (!wasUpdatedSuccessfully){ res.status(500).json({code: 500, message: "Server error", }); return; }
+	if (!wasUpdatedSuccessfully) { res.status(500).json({ code: 500, message: "Server error", }); return; }
 
 	// Send response
 	res.status(200).json({ code: 200, message: "Ok", data: { jwtAccessToken: jwtAccessToken, }, })
@@ -264,13 +264,13 @@ async function logoutUser(req: Request, res: Response): Promise<void> {
 	// Check if the client token is valid
 	const foundClientToken: WithId<Document> | void | null = await clientTokenStorageCollection.findOne(fetchQuery, fetchQueryOptions)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while fetching data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}] | ${error}`)
+			_lossLoggingModule.err(`Error while fetching data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName} | ${error}`)
 			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
 
 	// Log
-	_lossLoggingModule.log(`Successfully fetched data from [${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully fetched data from ${clientTokenStorageConnectionInfo.databaseName}@${_clientTokenStorageCollectionName}`)
 
 	// Check if the client token was found
 	if (!foundClientToken) { res.status(401).json({ code: 401, message: "Client token invalid", }); return; }
@@ -282,19 +282,19 @@ async function logoutUser(req: Request, res: Response): Promise<void> {
 	// Find the refresh token and delete it
 	const wasDeletedSuccessfully: WithId<Document> | void | null | ModifyResult<Document> = await liveTokenStorageCollection.findOneAndDelete(fetchQuery)
 		.catch((error: Error) => {
-			_lossLoggingModule.err(`Error while finding and deleting data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}] | ${error}`)
-			res.status(500).json({code: 500, message: "Server error", })
+			_lossLoggingModule.err(`Error while finding and deleting data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName} | ${error}`)
+			res.status(500).json({ code: 500, message: "Server error", })
 			return
 		})
-	
+
 	// Log
-	_lossLoggingModule.log(`Successfully found and deleted data from [${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}]`)
+	_lossLoggingModule.log(`Successfully found and deleted data from ${liveTokenStorageConnectionInfo.databaseName}@${_liveTokenStorageCollectionName}`)
 
 	// Check if the refresh token was found
 	if (!wasDeletedSuccessfully || !wasDeletedSuccessfully.value) { res.status(401).json({ code: 401, message: "Refresh token invalid", }); return; }
 
 	// Send response
-	res.status(200).json({code: 200, message: "Ok", })
+	res.status(200).json({ code: 200, message: "Ok", })
 	return
 }
 
@@ -315,7 +315,7 @@ module.exports.init = async function (expressApp: Express, loadedRouteModules: R
 	_lossLoggingModule = modules.lossLoggingModule
 	_lossUtilityModule = modules.lossUtilityModule
 	_lossSecurityModule = modules.lossSecurityModule
-	_tokenExpirationTime = app.get('LOSS_ENV_SERVER_CONFIGURATION_TOKEN_EXPIRATION_TIME')
+	_tokenExpirationTime = app.get('LOSS_ENV_SPACE_GUARD_CONFIGURATION_TOKEN_EXPIRATION_TIME')
 	_liveTokenStorageCollectionName = app.get('LOSS_ENV_SPACE_GUARD_DATABASE_LIVE_TOKEN_STORAGE_COLLECTION_NAME')
 	_clientTokenStorageCollectionName = app.get('LOSS_ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME')
 
