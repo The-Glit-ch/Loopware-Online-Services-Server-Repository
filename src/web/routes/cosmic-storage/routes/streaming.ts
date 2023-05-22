@@ -27,6 +27,14 @@ let _lossUtilityModule: LossUtilityModule
 // _init()
 
 // Public Methods
+/**
+ * `GET /stream`
+ * @description Streams asset to a client
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function assetStream(req: Request, res: Response): Promise<void> {
 	// Retrieve request body
 	const requestBody: object | any = req.body

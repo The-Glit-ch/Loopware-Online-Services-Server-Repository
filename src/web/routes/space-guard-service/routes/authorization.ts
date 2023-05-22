@@ -37,14 +37,14 @@ let _clientTokenStorageCollectionName: string
 
 // Public Methods
 /**
- * `POST /authorize-user`
- * @description Authorizes a user with Loss: Space Guard
+ * `POST /register-client`
+ * @description Authorizes a client with Loss: Space Guard
  * @requires Client Token
  * @param { Request } req - The request object 
  * @param { Response } res - The response object 
  * @returns { Promise<void> } void
  */
-async function authorizeUser(req: Request, res: Response): Promise<void> {
+async function registerClient(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header
 	const authorizationHeader: string | undefined = req.headers.authorization
 
@@ -117,14 +117,14 @@ async function authorizeUser(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * `POST /refresh-user`
- * @description Refreshes a user's access token
+ * `POST /refresh-client`
+ * @description Refreshes a client's access token
  * @requires Client Token && Refresh Token
  * @param { Request } req - The request object 
  * @param { Response } res - The response object 
  * @returns { Promise<void> } void
  */
-async function refreshUser(req: Request, res: Response): Promise<void> {
+async function refreshClient(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header
 	const authorizationHeader: string | undefined = req.headers.authorization
 
@@ -221,15 +221,15 @@ async function refreshUser(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * `POST /logout-user`
- * @description Logs out a user by invalidating their refresh token
+ * `POST /logout-client`
+ * @description Logs out a client by invalidating their refresh and access token
  * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
  * @requires Client Token && Refresh Token
  * @param { Request } req - The request object 
  * @param { Response } res - The response object 
  * @returns { Promise<void> } void
  */
-async function logoutUser(req: Request, res: Response): Promise<void> {
+async function logoutClient(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header
 	const authorizationHeader: string | undefined = req.headers.authorization
 
@@ -320,9 +320,9 @@ module.exports.init = async function (expressApp: Express, loadedRouteModules: R
 	_clientTokenStorageCollectionName = app.get('LOSS_ENV_SPACE_GUARD_DATABASE_CLIENT_TOKEN_STORAGE_COLLECTION_NAME')
 
 	// Setup endpoints
-	router.post('/authorize-user', authorizeUser)
-	router.post('/refresh-user', refreshUser)
-	router.post('/logout-user', logoutUser)
+	router.post('/register-client', registerClient)
+	router.post('/refresh-client', refreshClient)
+	router.post('/logout-client', logoutClient)
 
 	// Return router
 	return router

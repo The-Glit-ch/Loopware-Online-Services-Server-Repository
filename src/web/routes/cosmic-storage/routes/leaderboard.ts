@@ -35,6 +35,14 @@ let _lossSecurityModule: LossSecurityModule
 // _init()
 
 // Public Methods | In order of CRUD (Create, Read, Update, Destroy)
+/**
+ * `POST /create-leaderboard`
+ * @description Creates a new leaderboard
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function createLeaderboard(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -90,6 +98,14 @@ async function createLeaderboard(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `POST /create-leaderboard`
+ * @description Creates a new leaderboard category
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function createCategory(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -151,6 +167,15 @@ async function createCategory(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `POST /add-record`
+ * @description Adds a new record to a leaderboard category
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function addRecord(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -210,6 +235,14 @@ async function addRecord(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `GET /fetch-records`
+ * @description Fetches records from a leaderboard category
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function fetchRecords(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -269,6 +302,15 @@ async function fetchRecords(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `PATCH /update-record`
+ * @description Updates a record in a leaderboard category
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function updateRecord(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -328,6 +370,15 @@ async function updateRecord(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `DELETE /delete-record`
+ * @description Deletes a record in a leaderboard category
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteRecord(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -387,6 +438,15 @@ async function deleteRecord(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `DELETE /delete-category`
+ * @description Deletes a leaderboard category and all its records
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteCategory(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -445,6 +505,14 @@ async function deleteCategory(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `DELETE /delete-leaderboard`
+ * @description Deletes a leaderboard and all its categories and records
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteLeaderboard(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -519,8 +587,8 @@ module.exports.init = async function (expressApp: Express, loadedRouteModules: R
 	_lossSecurityModule = modules.lossSecurityModule
 
 	// Setup endpoints
-	router.post("/new-leaderboard", createLeaderboard)
-	router.post("/new-category", createCategory)
+	router.post("/create-leaderboard", createLeaderboard)
+	router.post("/create-category", createCategory)
 	router.post("/add-record", addRecord)
 	router.get("/fetch-records", fetchRecords)
 	router.patch("/update-record", updateRecord)

@@ -37,6 +37,14 @@ let _lossSecurityModule: LossSecurityModule
 // _init()
 
 // Public Methods | In order of CRUD (Create, Read, Update, Destroy)
+/**
+ * `POST /create-collection`
+ * @description Creates a new collection
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function createCollection(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -91,6 +99,14 @@ async function createCollection(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `POST /write-data`
+ * @description Writes data in a collection
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function writeData(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -145,12 +161,28 @@ async function writeData(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `POST /write-data-bulk`
+ * @description Not implemented
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function writeDataBulk(req: Request, res: Response): Promise<void> {
 	// Send response
 	res.status(501).json({ code: 501, message: "Not implemented", })
 	return
 }
 
+/**
+ * `GET /get-collections`
+ * @description Not implemented
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function getCollections(req: Request, res: Response): Promise<void> {
 	// Send response
 	res.status(501).json({ code: 501, message: "Not implemented", })
@@ -179,6 +211,14 @@ async function getCollections(req: Request, res: Response): Promise<void> {
 	// console.log(await datastoreStorageDb.collections())
 }
 
+/**
+ * `GET /fetch-data`
+ * @description Fetches data in a collection
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function fetchData(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -233,6 +273,15 @@ async function fetchData(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `PATCH /update-data`
+ * @description Updates data in a collection
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function updateData(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -287,12 +336,29 @@ async function updateData(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `PATCH /update-data-bulk`
+ * @description Not implemented
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function updateDataBulk(req: Request, res: Response): Promise<void> {
 	// Send response
 	res.status(501).json({ code: 501, message: "Not implemented", })
 	return
 }
 
+/**
+ * `PUT /replace-data`
+ * @description Replaces data in a collection
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function replaceData(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -347,6 +413,15 @@ async function replaceData(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `DELETE /delete-data`
+ * @description Deletes data in a collection
+ * @description Contains `ModifyResult` type which is to be deprecated in later version of Mongo
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteData(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -366,7 +441,7 @@ async function deleteData(req: Request, res: Response): Promise<void> {
 	const newDeleteDataInteraction: DatastoreInteraction = {
 		collectionName: (clientTokenHash + ":" + requestBody.collectionName),
 		fetchQuery: { query: requestBody.fetchQuery.query, projection: {}, },
-		writeData: requestBody.writeData,
+		writeData: {},
 	}
 
 	// Validate interaction object
@@ -401,12 +476,28 @@ async function deleteData(req: Request, res: Response): Promise<void> {
 	return
 }
 
+/**
+ * `DELETE /delete-data-bulk`
+ * @description Not implemented
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteDataBulk(req: Request, res: Response): Promise<void> {
 	// Send response
 	res.status(501).json({ code: 501, message: "Not implemented", })
 	return
 }
 
+/**
+ * `POST /delete-collection`
+ * @description Deletes a collection
+ * @requires Client Token and Access Token
+ * @param { Request } req - The request object 
+ * @param { Response } res - The response object 
+ * @returns { Promise<void> } void
+ */
 async function deleteCollection(req: Request, res: Response): Promise<void> {
 	// Retrieve authorization header and request body
 	const requestBody: object | any = req.body
@@ -479,7 +570,7 @@ module.exports.init = async function (expressApp: Express, loadedRouteModules: R
 	_lossSecurityModule = modules.lossSecurityModule
 
 	// Setup endpoints
-	router.post("/new-collection", createCollection)
+	router.post("/create-collection", createCollection)
 	router.post("/write-data", writeData)
 	router.post("/write-data-bulk", writeDataBulk)
 	router.get("/get-collections", getCollections)
