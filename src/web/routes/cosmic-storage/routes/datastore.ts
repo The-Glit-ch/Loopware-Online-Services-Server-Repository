@@ -6,7 +6,7 @@ import { LossSecurityModule } from '../../../../modules/security_module/module';
 import { MongoConnectionInformation } from '../../../../common/interfaces/mongo_connection_information';
 
 import { Express, Request, Response, Router } from 'express';
-import { Collection, Db, Document, InsertOneResult, ModifyResult, MongoClient, WithId } from 'mongodb';
+import { Collection, Db, Document, InsertManyResult, InsertOneResult, ModifyResult, MongoClient, WithId } from 'mongodb';
 
 // Docstring
 
@@ -19,7 +19,7 @@ interface DatastoreInteraction {
 		query: object,
 		projection: object,
 	},
-	writeData: object,
+	writeData: any,
 }
 
 // Classes
@@ -163,15 +163,63 @@ async function writeData(req: Request, res: Response): Promise<void> {
 
 /**
  * `POST /write-data-bulk`
- * @description Not implemented
+ * @description Writes bulk data in a collection
  * @requires Client Token and Access Token
  * @param { Request } req - The request object 
  * @param { Response } res - The response object 
  * @returns { Promise<void> } void
  */
 async function writeDataBulk(req: Request, res: Response): Promise<void> {
+	// Retrieve authorization header and request body
+	const requestBody: object | any = req.body
+	const authorizationHeader: string | undefined = req.headers.authorization
+
+	// Check if the authorization header is empty
+	if (!authorizationHeader) { res.status(401).json({ code: 401, message: "Empty authorization header", }); return; }
+
+	// Check if the body is empty
+	if (Object.keys(requestBody).length === 0) { res.status(400).json({ code: 400, message: "Invalid body", }); return; }
+
+	// Split the header and hash the token
+	const splitHeader: string | Array<string> = await _lossUtilityModule.returnToken(authorizationHeader, true)
+	const clientTokenHash: string = await _lossSecurityModule.hash(splitHeader[0])
+
+	// Prepare database interaction
+	const newWriteDataBulkInteraction: DatastoreInteraction = {
+		collectionName: (clientTokenHash + ":" + requestBody.collectionName),
+		fetchQuery: { query: {}, projection: {}, },
+		writeData: requestBody.writeData,
+	}
+
+	// Validate interaction object
+	if (!await _lossUtilityModule.validateObject(newWriteDataBulkInteraction)) { res.status(400).json({ code: 400, message: "Invalid body", }); return; }
+
+	// Retrieve the database references
+	const datastoreStorageConnectionInfo: MongoConnectionInformation = _expressAppReference.get('LOSS_DATABASE_DATASTORESTORAGE')
+
+	// Check if the databases are offline
+	if (datastoreStorageConnectionInfo.isConnected === false) { res.status(503).json({ code: 503, message: "Service unavailable", }); return; }
+
+	// Continue database initialization
+	const datastoreStorageClient: MongoClient = datastoreStorageConnectionInfo.client
+	const datastoreStorageCollection: Collection = datastoreStorageClient.db().collection(newWriteDataBulkInteraction.collectionName)
+
+	// Write data
+	const wasWrittenSuccessfully: InsertManyResult<Document> | void = await datastoreStorageCollection.insertMany(newWriteDataBulkInteraction.writeData, { "ordered": true, })
+		.catch((error: Error) => {
+			_lossLoggingModule.err(`Error while writing bulk data to ${datastoreStorageConnectionInfo.databaseName}@${datastoreStorageCollection.collectionName} | ${error}`)
+			res.status(500).json({ code: 500, message: "Server error", })
+			return
+		})
+
+	// Log
+	_lossLoggingModule.log(`Successfully wrote bulk data to ${datastoreStorageConnectionInfo.databaseName}@${datastoreStorageCollection.collectionName}`)
+
+	// Check if the write was successful
+	if (!wasWrittenSuccessfully) { return; }
+
 	// Send response
-	res.status(501).json({ code: 501, message: "Not implemented", })
+	res.status(200).json({ code: 200, message: "Ok", })
 	return
 }
 
