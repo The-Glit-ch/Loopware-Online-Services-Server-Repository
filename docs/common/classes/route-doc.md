@@ -4,60 +4,81 @@
 ---
 
 ### Description:
-The **Route** class provides generic boiler plate code for setting up and configuring routes and endpoints in Loss. Each route is instanced with a reference to the main express app along with the loaded route modules. This allows for the sharing of already instanced modules minimizing memory usage
+The **Route** class provides generic boilerplate functionality for setting up and configuring routes and endpoints in Loss. Each route is instanced with a reference to the main Express app along with the currently loaded route modules. This allows for the sharing of already instanced classes and modules reducing overall memory usage.
 
 ---
 
 ### Examples:
+#### Instancing a New Route
+```typescript
+const myNewRoute: Route = await Route.init(expressApp, loadedRouteModules)
+``` 
 
-#### Creating a new route:
+---
 
+#### Creating an Endpoint
 ```typescript
 /**
- * myEndpoint.ts
- * Endpoint code
+ * endpoint.ts
+ * Endpoint logic
  */
 
 // Private Variables
-let _loggingModule: LossLoggingModule
+let _lossLoggingModule: LossLoggingModule
 
-// Public endpoints
-function myEndpointHandler(request: Request, response: Response): Promise<void> {
-	res.status(200).json({ "data": "data", })
-	return
-}
+// Public Methods
+async function myEndpointHandler(req: Request, res: Response): Promise<void> {
+	// Log
+	_lossLoggingModule.log("We got a hit!!")
 
-// Init
-module.exports.init = async function (expressApp: Express, loadedRouteModules: RouteModules): Promise<Router> {
+	// Send response
+	res.status(200).json({ "hello": "world", })
+} 
+
+// Run
+module.exports.init = async function(expressApp: Express, loadedRouteModules: RouteModules): Promise<Router> {
 	// Create a new route instance
 	const myNewEndpoint: Route = await Route.init(expressApp, loadedRouteModules)
 
-	// Get references for future use
+	// Get references
 	const router: Router = await myNewEndpoint.getRouter()
 	const modules: RouteModules = await myNewEndpoint.getModules()
 
-	// Setup endpoints
-	myNewEndpoint.get("/my-endpoint", myEndPointHandler)
+	// Set local variables
+	_lossLoggingModule = modules.lossLoggingModule
 
-	// Return router 
+	// Return router
 	return router
 }
+```
 
+---
 
+#### Using an Endpoint in a Route
+```typescript
 /**
- * main.ts
- * Main server code
+ * route.ts
+ * Route logic
  */
-const myRoute: Router = await require('./my/path/to/route').init(myExpressApp, myRouteModules)
-app.use("/my-route/to/endpoint/", myRoute)
 
-//continue with server code..
+module.exports.init = async function(expressApp: Express, loadedRouteModules: RouteModules): Promise<Router> {
+	// Create a new route instance
+	const myRoute: Route = await Route.init(expressApp, loadedRouteModules)
+
+	// Instance the endpoint
+	const myNewEndpoint: Router = await require('./path/to/endpoint').init(expressApp, loadedRouteModules)
+
+	// Get references
+	const router: Router = await myNewEndpoint.getRouter()
+
+	// Return router
+	return router
+}
 ```
 
 ---
 
 ### Properties and Definitions:
-
 ```typescript
 interface RouteModules {
 	lossLoggingModule: LossLoggingModule,
@@ -65,7 +86,6 @@ interface RouteModules {
 	lossSecurityModule: LossSecurityModule,
 }
 ```
-
 ```typescript
 class Route {
 	/**
@@ -83,7 +103,7 @@ class Route {
 	getApp()
 
 	/**
-	 * Returns the Express Router class
+	 * Returns the Express router class
 	 * @returns { Promise<Router> } Express router 
 	 */
 	getRouter()
@@ -95,6 +115,5 @@ class Route {
 	getModules()
 }
 ```
-
 ---
 

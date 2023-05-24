@@ -4,42 +4,7 @@
 ---
 
 ### Description:
-The **Space Guard Authorization Route** is the main *"gateway"* between you, as the client, and the Loopware Online Subsystem Server (Loss) instance. Using an OAUTH 2.0 flow along with Json Web Tokens (JWT's) the **Space Guard Authorization Route** is able to provide a secure and manageable way of communicating with Loss
-
----
-
-### Diagrams:
-#### OAUTH 2.0 Flow
-A simple overview on how OAUTH 2.0 is done in Loss
-```mermaid
-sequenceDiagram
-	participant client as Client
-	participant space_guard as Space Guard: Authorization Route
-	participant authorization_middleware as Authorization Middleware
-	participant private_service as Loss Service
-
-	Note right of client: Requests authorization
-	client ->>+ space_guard: Client token
-	Note left of space_guard: Validates client token
-	alt Valid Client Token
-		space_guard -->>- client: jwtAccessToken, jwtRefreshToken
-		Note right of client: Requests data with access token
-		client ->>+ authorization_middleware: /my-endpoint
-		client ->> authorization_middleware: Client token, jwtAccessToken
-		Note left of authorization_middleware: Validates client token and access token
-		alt Valid Client Token and Access Token
-			authorization_middleware ->>- private_service: Client request
-			activate private_service
-			Note left of private_service: Process request
-			private_service -->> client: Data
-			deactivate private_service
-		else Invalid Client Token and Access Token
-			authorization_middleware --x client: 401: Unauthorized, Invalid token(s)
-		end
-	else Invalid Client Token
-		space_guard --x client: 401: Unauthorized, Invalid client token
-	end
-```
+The **Space Guard: Authorization Route** is the main *"gateway"* between you, as the client, and the Loopware Online Subsystem Server (Loss) instance. Using an OAUTH 2.0 flow, Json Web Tokens (JWT), and role based access the **Space Guard: Authorization Route** is able to provide a secure and manageable way of communicating with Loss
 
 ---
 
@@ -50,6 +15,16 @@ Registers a client with Loss
 POST https://localhost.com/space-guard/api/v1/register-client
 Authorization: ClientToken
 ```
+```json
+{
+	"code": 200,
+	"message": "Ok",
+	"data": {
+		"jwtAccessToken": "abc123",
+		"jwtRefreshToken": "abc123",
+	},
+}
+```
 
 ---
 
@@ -58,6 +33,15 @@ Refreshes a client's access token
 ```http
 POST https://localhost.com/space-guard/api/v1/refresh-client
 Authorization: ClientToken:jwtRefreshToken
+```
+```json
+{
+	"code": 200,
+	"message": "Ok",
+	"data": {
+		"jwtAccessToken": "abc123",
+	},
+}
 ```
 
 ---
@@ -68,5 +52,43 @@ Invalidates a client's access token and refresh token
 POST https://localhost.com/space-guard/api/v1/logout-client
 Authorization: ClientToken:jwtRefreshToken
 ```
+```json
+{
+	"code": 200,
+	"message": "Ok",
+}
+```
 
+---
+
+### Diagrams
+#### OAUTH 2.0 Flow
+This shows an example on how OAUTH 2.0 works in Loss. This does **NOT** show the full scale of the process
+```mermaid
+sequenceDiagram
+	participant client as Client
+	participant space_guard as Space Guard
+	participant auth_middleware as Authorization Middleware
+	participant resource as Resource
+
+	Note right of client: Client sends a registration request
+	
+	client ->>+ space_guard: Client token
+	
+	Note left of space_guard: Space Guard validates the client token
+	
+	space_guard -->>- client: Refresh Token, Access Token
+	
+	Note over client, auth_middleware: Client sends a request to a secured resource
+	
+	client ->>+ auth_middleware: Client token, Access Token
+
+	Note left of auth_middleware: Authorization middleware checks with Space Guard
+
+	auth_middleware ->>- resource: Client request
+
+	Note left of resource: Resource server processes the request
+
+	resource -->> client: Data
+```
 ---

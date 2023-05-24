@@ -4,12 +4,13 @@
 ---
 
 ### Description:
-A simple and descriptive guide showing the style guidelines that Loss uses. In order to contribute to Loss these style guidelines must be met *(along with code quality and maintainability)*
+A simple and descriptive style guide showing the guidelines Loss uses for writing clean, maintainable code. In order for any contribution to be made to Loss they must follow these guidelines *(along with code quality and maintainability)*
 
 ---
 
-### Starter Template:
-
+### Templates:
+#### Starter Template 1
+This blank template is perfect for copy and pasting into your new file, allowing you to write code right away without having to worry about where things should go
 ```typescript
 // Imports
 
@@ -49,7 +50,10 @@ A simple and descriptive guide showing the style guidelines that Loss uses. In o
 // Run
 ```
 
-### Documented Template:
+---
+
+#### Template 2
+This "documented" template shows exactly how everything should look like at the end
 ```typescript
 // Imports
 import variable from 'system_library';
@@ -85,16 +89,16 @@ class MyClass extends MyCoolerClass {
 	constructor(...params: type) {...}
 
 	// Public Static Methods
-	public static [modifier] myFunction(...params: type): returnType {...}
+	public static [modifier] myFunction(...params: type): Promise<returnType> {...}
 
 	// Public Inherited Methods
-	public [modifier] myCoolerFunction(...params: type): returnType {...}
+	public [modifier] myCoolerFunction(...params: type): Promise<returnType> {...}
 
 	// Private Static Methods
-	private static [modifier] mySecretFunction(...params: type): returnType {...}
+	private static [modifier] _mySecretFunction(...params: type): Promise<returnType> {...}
 
 	// Private Inherited Methods
-	private [modifier] myCoolerSecretFunction(...params: type): returnType {...}
+	private [modifier] _myCoolerSecretFunction(...params: type): Promise<returnType> {...}
 }
 
 // Enums
@@ -123,13 +127,13 @@ let _mySecretVariable: type = value
 async _init(): Promise<void> {...}
 
 // Public Methods
-async function myPublicFunction(...params: type) {...}
+async function myPublicFunction(...params: type): Promise<returnType> {...}
 
 // Private Methods
-async function myPrivateFunction(...params: type) {...}
+async function _myPrivateFunction(...params: type): Promise<returnType> {...}
 
 // Run
 _init()
 ```
 
----
+----
