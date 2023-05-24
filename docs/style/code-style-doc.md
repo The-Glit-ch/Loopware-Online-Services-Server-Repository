@@ -1,5 +1,56 @@
-# Naming template on how code should be named and laid out
+# **Loopware Online Subsystem Server: Style Guides**
+## ***Code Style Guide***
 
+---
+
+### Description:
+A simple and descriptive guide showing the style guidelines that Loss uses. In order to contribute to Loss these style guidelines must be met *(along with code quality and maintainability)*
+
+---
+
+### Starter Template:
+
+```typescript
+// Imports
+
+// Docstring
+
+// Enums
+
+// Interfaces
+
+// Classes
+	// Public Variables
+
+	// Private Variables
+
+	// Constructor
+
+	// Public Static Methods
+
+	// Public Inherited Methods
+
+	// Private Static Methods
+
+	// Private Inherited Methods
+
+// Constants
+
+// Public Variables
+
+// Private Variables
+
+// _init()
+
+// Public Methods
+
+// Private Methods
+
+// Run
+```
+
+### Documented Template:
+```typescript
 // Imports
 import variable from 'system_library';
 import { type } from 'system_library';
@@ -79,3 +130,6 @@ async function myPrivateFunction(...params: type) {...}
 
 // Run
 _init()
+```
+
+---
