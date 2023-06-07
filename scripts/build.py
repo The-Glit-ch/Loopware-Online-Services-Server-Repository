@@ -1,77 +1,80 @@
 # Imports
-import os, subprocess
-from subprocess import PIPE, CalledProcessError
+import os
+import sys
+import subprocess
 from typing import Final
 
 # Docstring
-# Loopware Online Subsystem @ Automated build script
-# Automates the process of building and running Loss locally
-
-# Classes
+# Loopware Online Subsystem @ Build Toolchain
+# Robust build toolchain allowing for both builds of a development and production Loss instance
+# UNIX systems only
 
 # Enums
 
-# Interface
+# Interfaces
+
+# Classes
 
 # Constants
-__author__: Final[str] = "https://github.com/The-Glit-ch"
-__version__: Final[str] = "PRE-1.0.0" 
-
-# ENV Constants
 
 # Public Variables
 
 # Private Variables
 
 # main()
-def main() -> None:
-	# Change to ./src directory
-	os.chdir("./src")
+def main(build_type: str) -> None:
+	# Switch to the project dir
+	os.chdir(".././src")
 
-	# Build project
-	print("Building project...")
+	# Build typescript project
 	try:
-		subprocess.run(['tsc'], stdout=PIPE).check_returncode()
-	except CalledProcessError as call_error:
-		print(f"An error occurred while building the project | {call_error}")
+		print("Building project...")
+		subprocess.run(['tsc'], stdout=subprocess.PIPE).check_returncode()
+		print("Build successful")
+	except subprocess.CalledProcessError as call_error:
+		print(f"Typescript build error | {call_error}")
 		return
-	print("Build successful")
-
-	# Change to root project directory
-	os.chdir("..")
-
-	# Copy external files
+	
+	# Copy files
 	print("Copying required files")
-	_system_copy("./src/package-lock.json", "./build")
-	_system_copy("./src/package.json", "./build")
-	_system_copy("./env/.env", "./build")
-	_system_copy("./certs/", "./build")
+	_unix_copy(".././src/package-lock.json", ".././dist")
+	_unix_copy(".././src/package.json", ".././dist")
+	_unix_copy(".././env/.env", ".././dist")
+	_unix_copy(".././certs/", ".././dist")
 
-	# Change to the build directory
-	os.chdir("./build")
+	# Switch to dist dir
+	os.chdir(".././dist")
 
 	# Install packages
-	print("Installing packages...")
 	try:
-		subprocess.run(['npm', 'ci'], stdout=PIPE).check_returncode()
-	except CalledProcessError as call_error:
-		print(f"An error occurred while installing packages | {call_error}")
+		print("Installing packages...")
+		subprocess.run(['npm', 'ci'], stdout=subprocess.PIPE).check_returncode()
+		print("Done installing")
+	except subprocess.CalledProcessError as call_error:
+		print(f"Error while installing packages | {call_error}")
 		return
-	print("Done installing")
-
-	# Run build
-	print("Running build")
-	subprocess.run(['export NODE_ENV=development && node ./web/index.js'], shell=True)
+	
+	# Run development build
+	print("Running development build...")
+	subprocess.run(['export NODE_ENV=development && node .'], shell=True)
 
 # Public Methods
 
 # Private Methods
-def _system_copy(source: str, target: str) -> None:
+def _unix_copy(source: str, target: str) -> None:
 	subprocess.call(['cp', '-a', source, target])
 
-# Callbacks
 
 # Run
 if __name__ == "__main__":
-	print(f"Loopware Online Subsystem @ Automated build script | Version {__version__}")
-	main()
+	# "dev" for development
+	# "prod" for production 
+	build_type: Final[str] = sys.argv[1].lower()
+
+	match build_type:
+		case "dev":
+			print("Preparing for development build")
+			main(build_type)
+		case "prod":
+			print("Preparing for production build")
+			main(build_type)

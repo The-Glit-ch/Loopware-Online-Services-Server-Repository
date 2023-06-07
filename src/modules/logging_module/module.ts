@@ -4,7 +4,7 @@ import { access, constants, mkdir, writeFile } from 'fs/promises'
 
 // Docstring
 /**
- * Loopware Online Subsystem @ Logging Module
+ * Loopware Online Subsystem Server @ Loss Logging Module
  * Simple logging module used by every Loss service
  */
 
@@ -64,7 +64,7 @@ export class LossLoggingModule {
 		console.log(fullLogMessage)
 
 		// Write to file
-		this._writeToLogFile(fullLogMessage)
+		await this._writeToLogFile(fullLogMessage)
 		return
 	}
 
@@ -85,7 +85,7 @@ export class LossLoggingModule {
 		console.log(fullLogMessage)
 
 		// Write to file
-		this._writeToLogFile(fullLogMessage)
+		await this._writeToLogFile(fullLogMessage)
 		return
 	}
 
@@ -106,7 +106,7 @@ export class LossLoggingModule {
 		console.log(fullLogMessage)
 
 		// Write to file
-		this._writeToLogFile(fullLogMessage)
+		await this._writeToLogFile(fullLogMessage)
 		return
 	}
 
@@ -117,7 +117,8 @@ export class LossLoggingModule {
 	 * @returns { void } void
 	 */
 	private static async _createLoggingDirectory(filePath: string): Promise<void> {
-		return access(filePath, constants.F_OK).catch((_: Error) => { mkdir(filePath).catch((error: Error) => { console.error(`Error while making logging directory | ${error}`); }); })
+		await access(filePath, constants.F_OK).catch((_: Error) => { mkdir(filePath).catch((error: Error) => { console.error(`Error while making logging directory | ${error}`); }); })
+		return
 	}
 
 	// Private Instanced Methods
@@ -128,7 +129,8 @@ export class LossLoggingModule {
 	 */
 	private async _writeToLogFile(logMessage: string): Promise<void> {
 		const filePath: string = join(this._currentLoggingDirectory, this._loggingFileName)
-		return writeFile(filePath, logMessage + "\n", { flag: 'a+', }).catch((error: Error) => { console.error(`Error while writing log to file | ${error}`); })
+		await writeFile(filePath, logMessage + "\n", { flag: 'a+', }).catch((error: Error) => { console.error(`Error while writing log to file | ${error}`); })
+		return
 	}
 }
 
