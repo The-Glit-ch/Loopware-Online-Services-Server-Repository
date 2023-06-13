@@ -5,9 +5,8 @@ import subprocess
 from typing import Final
 
 # Docstring
-# Loopware Online Subsystem @ Build Toolchain
-# Robust build toolchain allowing for both builds of a development and production Loss instance
-# UNIX systems only
+# Loopware Online Subsystem Server @ Build Script
+# Robust build toolchain allowing for both builds of a development and production Loss instance (UNIX systems only)
 
 # Enums
 
@@ -23,10 +22,23 @@ from typing import Final
 
 # main()
 def main(build_type: str) -> None:
-	# Switch to the project dir
-	os.chdir(".././src")
+	# Check the build type
+	match build_type:
+		case "dev":
+			print("Building Loss@Development")
+		case "prod":
+			print("Building Loss@Production")
+		case _:
+			print("Invalid build type")
+			return
+		
+	# Remove the old build
+	_unix_remove("./dist")
+	
+	# Switch to the project directory
+	os.chdir("./src")
 
-	# Build typescript project
+	# Build project
 	try:
 		print("Building project...")
 		subprocess.run(['tsc'], stdout=subprocess.PIPE).check_returncode()
@@ -37,12 +49,10 @@ def main(build_type: str) -> None:
 	
 	# Copy files
 	print("Copying required files")
-	_unix_copy(".././src/package-lock.json", ".././dist")
-	_unix_copy(".././src/package.json", ".././dist")
-	_unix_copy(".././env/.env", ".././dist")
-	_unix_copy(".././certs/", ".././dist")
+	_unix_copy("./package-lock.json", ".././dist")
+	_unix_copy("./package.json", ".././dist")
 
-	# Switch to dist dir
+	# Switch to dist directory
 	os.chdir(".././dist")
 
 	# Install packages
@@ -54,9 +64,10 @@ def main(build_type: str) -> None:
 		print(f"Error while installing packages | {call_error}")
 		return
 	
-	# Run development build
-	print("Running development build...")
-	subprocess.run(['export NODE_ENV=development && node .'], shell=True)
+	# Build type check
+	if build_type == "dev":
+		print("Running development build")
+		subprocess.run(['export NODE_ENV=development && node .'], shell=True)
 
 # Public Methods
 
@@ -64,17 +75,11 @@ def main(build_type: str) -> None:
 def _unix_copy(source: str, target: str) -> None:
 	subprocess.call(['cp', '-a', source, target])
 
+def _unix_remove(file_path: str) -> None:
+	subprocess.call(['rm', '-rf', file_path])
 
 # Run
 if __name__ == "__main__":
-	# "dev" for development
-	# "prod" for production 
+    # Get the requested build type
 	build_type: Final[str] = sys.argv[1].lower()
-
-	match build_type:
-		case "dev":
-			print("Preparing for development build")
-			main(build_type)
-		case "prod":
-			print("Preparing for production build")
-			main(build_type)
+	main(build_type)

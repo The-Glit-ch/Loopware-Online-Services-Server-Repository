@@ -1,20 +1,22 @@
 // Imports
 import { LossLoggingModule } from '../../modules/logging_module/module';
+import { LossArgumentParserModule } from '../../modules/argument_parser_module/module';
 
 // Docstring
 /**
  * Loopware Online Subsystem Server @ Loss Modules Bundle
- * Simple interface for accessing "bundled" Loss modules
+ * Provides a simple interface for "bundling" loss modules
  */
 
 // Enums
 
 // Interfaces
-
-// Classes
 export interface LossModulesBundle {
+	lossArgumentParserModule: LossArgumentParserModule,
 	lossLoggingModule: LossLoggingModule,
 }
+
+// Classes
 
 // Constants
 
